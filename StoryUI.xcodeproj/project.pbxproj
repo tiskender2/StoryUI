@@ -23,6 +23,9 @@
 		ED301A9E281AE1830032B7C2 /* StoryUIPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED301A9B281AE1830032B7C2 /* StoryUIPost.swift */; };
 		ED301AA1281AE1AA0032B7C2 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED301AA0281AE1AA0032B7C2 /* Enums.swift */; };
 		ED301AA7281AE25C0032B7C2 /* StoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED301AA6281AE25C0032B7C2 /* StoryView.swift */; };
+		ED96B744281B4EC400453896 /* UserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED96B743281B4EC400453896 /* UserView.swift */; };
+		ED96B746281B500000453896 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED96B745281B500000453896 /* ProgressView.swift */; };
+		ED96B749281B508D00453896 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED96B748281B508D00453896 /* Constant.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,6 +64,9 @@
 		ED301A9B281AE1830032B7C2 /* StoryUIPost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoryUIPost.swift; sourceTree = "<group>"; };
 		ED301AA0281AE1AA0032B7C2 /* Enums.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		ED301AA6281AE25C0032B7C2 /* StoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryView.swift; sourceTree = "<group>"; };
+		ED96B743281B4EC400453896 /* UserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserView.swift; sourceTree = "<group>"; };
+		ED96B745281B500000453896 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
+		ED96B748281B508D00453896 /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -178,6 +184,7 @@
 		ED301AA2281AE1B20032B7C2 /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				ED96B747281B508500453896 /* Constant */,
 				ED301AA0281AE1AA0032B7C2 /* Enums.swift */,
 			);
 			path = Helper;
@@ -186,9 +193,27 @@
 		ED301AA3281AE2450032B7C2 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				ED96B742281B4EB200453896 /* PrivateView */,
 				ED301AA6281AE25C0032B7C2 /* StoryView.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		ED96B742281B4EB200453896 /* PrivateView */ = {
+			isa = PBXGroup;
+			children = (
+				ED96B743281B4EC400453896 /* UserView.swift */,
+				ED96B745281B500000453896 /* ProgressView.swift */,
+			);
+			path = PrivateView;
+			sourceTree = "<group>";
+		};
+		ED96B747281B508500453896 /* Constant */ = {
+			isa = PBXGroup;
+			children = (
+				ED96B748281B508D00453896 /* Constant.swift */,
+			);
+			path = Constant;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -356,6 +381,9 @@
 				ED301AA1281AE1AA0032B7C2 /* Enums.swift in Sources */,
 				ED301A9D281AE1830032B7C2 /* StoryUIMedia.swift in Sources */,
 				ED301AA7281AE25C0032B7C2 /* StoryView.swift in Sources */,
+				ED96B746281B500000453896 /* ProgressView.swift in Sources */,
+				ED96B749281B508D00453896 /* Constant.swift in Sources */,
+				ED96B744281B4EC400453896 /* UserView.swift in Sources */,
 				ED301A82281AE0860032B7C2 /* StoryUIApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -16,3 +16,8 @@ public enum StoryUIMediaStateType {
     case seen
     case notSeen
 }
+
+enum StoryDirectionEnum {
+    case previous
+    case next
+}
