@@ -8,9 +8,24 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject var storyData = StoryViewModel()
     var body: some View {
-        Text("Hello, world!")
-            .padding()
+        NavigationView {
+            Button {
+                storyData.stories[0].isSeen = true
+                storyData.currentStory = storyData.stories[0].id
+                storyData.showStory = true
+            } label: {
+                Text("click")
+            }
+        }
+        .overlay(
+            withAnimation {
+                StoryView()
+                    .environmentObject(storyData)
+            }
+        )
+
     }
 }
 
