@@ -30,6 +30,10 @@ class StoryViewModel: ObservableObject {
             Story(imageURL: "p3"),
         ]),
     ]
+    
+    func dismiss() {
+        showStory = false
+    }
 }
 
 

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject var storyData = StoryViewModel()
+ //   @State private var isPresented  = false
     var body: some View {
         NavigationView {
             Button {
@@ -18,13 +19,11 @@ struct ContentView: View {
             } label: {
                 Text("click")
             }
-        }
-        .overlay(
-            withAnimation {
+            .fullScreenCover(isPresented: $storyData.showStory) {
                 StoryView()
                     .environmentObject(storyData)
             }
-        )
+        }
 
     }
 }

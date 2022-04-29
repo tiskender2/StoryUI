@@ -28,7 +28,7 @@ struct UserView: View {
             Spacer()
             
             Button(action: {
-                storyData.showStory = false
+                storyData.dismiss()
             }, label: {
                 Image(systemName: "xmark")
                     .padding()

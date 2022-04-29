@@ -23,7 +23,7 @@ struct StoryView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.black)
-            .transition(.move(edge: .bottom))
+            //.transition(.move(edge: .bottom))
         }
     }
 }
@@ -145,7 +145,7 @@ extension StoryCardView {
         if let last = bundle.stories.last, last.id == story.id {
             if let lastBundle = storyData.stories.last, lastBundle.id == bundle.id {
                 withAnimation {
-                    storyData.showStory = false
+                    storyData.dismiss()
                 }
             } else {
                 let bundleIndex = storyData.stories.firstIndex { currentBundle in

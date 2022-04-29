@@ -119,6 +119,7 @@
 				ED301A9F281AE1890032B7C2 /* Model */,
 				ED301A96281AE09B0032B7C2 /* ViewModel */,
 				ED301AA3281AE2450032B7C2 /* View */,
+				ED301AA6281AE25C0032B7C2 /* StoryView.swift */,
 				ED301A5A281AE0840032B7C2 /* StoryUIApp.swift */,
 				ED301A5B281AE0840032B7C2 /* ContentView.swift */,
 				ED301A5C281AE0860032B7C2 /* Assets.xcassets */,
@@ -194,7 +195,6 @@
 			isa = PBXGroup;
 			children = (
 				ED96B742281B4EB200453896 /* PrivateView */,
-				ED301AA6281AE25C0032B7C2 /* StoryView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
