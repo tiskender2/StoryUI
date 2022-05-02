@@ -44,7 +44,6 @@ class PlayerView: UIView {
         guard let validatedUrl = url else { return }
         if self.url == url { return }
         self.url = validatedUrl
-        print("232")
         addActivityIndicatory()
         addObserverToVideo()
         // stop video if it's playing before video request
