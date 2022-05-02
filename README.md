@@ -11,6 +11,9 @@ dependencies: [
     .package(url: "https://github.com/tiskender2/StoryUI.git", exact: "1.0.0")
 ]
 ```
+## Example 
+![example](https://user-images.githubusercontent.com/17899883/166338390-ac5988fc-b417-4c41-b35a-8b18eca61eac.gif)
+
 
 ## Usage
 
