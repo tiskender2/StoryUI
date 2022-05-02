@@ -41,6 +41,9 @@ public struct StoryView: View {
             .onAppear() {
                 startStory()
             }
+            .onDisappear() {
+               stopVideo()
+            }
         }
     }
     
@@ -48,6 +51,10 @@ public struct StoryView: View {
         storyData.stories = stories
         storyData.stories[selectedIndex].isSeen = true
         storyData.currentStoryUser = stories[selectedIndex].id
+    }
+    
+    private func stopVideo() {
+        NotificationCenter.default.post(name: .stopVideo, object: nil)
     }
 }
 
