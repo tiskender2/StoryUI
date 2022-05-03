@@ -28,16 +28,18 @@ public struct StoryView: View {
     
     public var body: some View {
         if isPresented {
-            TabView(selection: $storyData.currentStoryUser) {
-                ForEach($storyData.stories) { $model in
-                    StoryDetailView(model: $model,
-                                    isPresented: $isPresented)
-                    .environmentObject(storyData)
+            ZStack {
+                Color.black.ignoresSafeArea()
+                TabView(selection: $storyData.currentStoryUser) {
+                    ForEach($storyData.stories) { $model in
+                        StoryDetailView(model: $model,
+                                        isPresented: $isPresented)
+                        .environmentObject(storyData)
+                    }
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.black)
             .onAppear() {
                 startStory()
             }

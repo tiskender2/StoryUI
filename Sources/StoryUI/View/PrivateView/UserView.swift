@@ -17,24 +17,8 @@ struct UserView: View {
     @Binding var isPresented: Bool
     
     var body: some View {
-        HStack(spacing: 13) {
-            CacheAsyncImage(url: URL(string: bundle.user.image) ?? URL(fileURLWithPath: "")) { phase in
-                switch phase {
-                case .empty:
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                case .failure(let error):
-                    let _ =  print(error)
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 40, height: 40)
-                        .clipShape(Circle())
-                @unknown default:
-                    fatalError()
-                }
-            }
+        HStack(spacing: 13) {            
+            CacheAsyncImage(urlString: bundle.user.image)
             VStack(alignment: .leading) {
                 Text(bundle.user.name)
                     .fontWeight(.bold)
