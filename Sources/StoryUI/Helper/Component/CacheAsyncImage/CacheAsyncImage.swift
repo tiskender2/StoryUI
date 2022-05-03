@@ -7,54 +7,106 @@
 
 import SwiftUI
 
-struct CacheAsyncImage<Content>: View where Content: View{
+struct CacheAsyncImage: View {
+    @ObservedObject var urlImageModel: UrlImageModel
     
-    private let url: URL
-    private let scale: CGFloat
-    private let transaction: Transaction
-    private let content: (AsyncImagePhase) -> Content
-    
-    init(
-        url: URL,
-        scale: CGFloat = 1.0,
-        transaction: Transaction = Transaction(),
-        @ViewBuilder content: @escaping (AsyncImagePhase) -> Content
-    ){
-        self.url = url
-        self.scale = scale
-        self.transaction = transaction
-        self.content = content
+    init(urlString: String?) {
+        urlImageModel = UrlImageModel(urlString: urlString)
     }
     
     var body: some View {
-        if let cached = AsyncImageCache[url]{
-            content(.success(cached))
-        }else{
-            AsyncImage(
-                url: url,
-                scale: scale,
-                transaction: transaction
-            ){phase in
-                cacheAndRender(phase: phase)
-            }
+        if  urlImageModel.image != nil {
+            Image(uiImage: urlImageModel.image!)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
+        } else {
+            Color.gray.opacity(0.8)
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
         }
-    }
-    func cacheAndRender(phase: AsyncImagePhase) -> some View {
-        if case .success (let image) = phase {
-            AsyncImageCache[url] = image
-        }
-        return content(phase)
     }
 }
 
-fileprivate class AsyncImageCache {
-    static private var cache: [URL: Image] = [:]
-    static subscript(url: URL) -> Image?{
-        get{
-            AsyncImageCache.cache[url]
+
+class UrlImageModel: ObservableObject {
+    @Published var image: UIImage?
+    var urlString: String?
+    var imageCache = CacheAsyncImageCache.getImageCache()
+    
+    init(urlString: String?) {
+        self.urlString = urlString
+        loadImage()
+    }
+    
+    func loadImage() {
+        if loadImageFromCache() {
+            return
         }
-        set{
-            AsyncImageCache.cache[url] = newValue
+        loadImageFromUrl()
+    }
+    
+    func loadImageFromCache() -> Bool {
+        guard let urlString = urlString else {
+            return false
         }
+        
+        guard let cacheImage = imageCache.get(forKey: urlString) else {
+            return false
+        }
+        
+        image = cacheImage
+        return true
+    }
+    
+    func loadImageFromUrl() {
+        guard let urlString = urlString else {
+            return
+        }
+        
+        let url = URL(string: urlString)!
+        let task = URLSession.shared.dataTask(with: url, completionHandler: getImageFromResponse(data:response:error:))
+        task.resume()
+    }
+    
+    
+    func getImageFromResponse(data: Data?, response: URLResponse?, error: Error?) {
+        guard error == nil else {
+            print("Error: \(error!)")
+            return
+        }
+        guard let data = data else {
+            print("No data found")
+            return
+        }
+        
+        DispatchQueue.main.async {
+            guard let loadedImage = UIImage(data: data) else {
+                return
+            }
+            
+            self.imageCache.set(forKey: self.urlString!, image: loadedImage)
+            self.image = loadedImage
+        }
+    }
+}
+
+class CacheAsyncImageCache {
+    var cache = NSCache<NSString, UIImage>()
+    
+    func get(forKey: String) -> UIImage? {
+        return cache.object(forKey: NSString(string: forKey))
+    }
+    
+    func set(forKey: String, image: UIImage) {
+        cache.setObject(image, forKey: NSString(string: forKey))
+    }
+}
+
+extension CacheAsyncImageCache {
+    private static var imageCache = CacheAsyncImageCache()
+    static func getImageCache() -> CacheAsyncImageCache {
+        return imageCache
     }
 }
