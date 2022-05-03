@@ -31,7 +31,7 @@ struct ContentView: View {
         ]),
         StoryUIModel(user: User(name: "Jhon Doe", image: "https://image.tmdb.org/t/p/original//pThyQovXQrw2m0s9x82twj48Jq4.jpg"), stories: [
             Story(mediaURL: "https://picsum.photos/id/237/200/300", date: "12 hour ago", type: .image),
-            Story(mediaURL: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", date: "30 min ago", type: .video)
+            Story(mediaURL: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", date: "30 min ago", type: .video)
         ]),
     ]
 var body: some View {
