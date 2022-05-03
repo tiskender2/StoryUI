@@ -21,8 +21,9 @@ struct UserView: View {
             CacheAsyncImage(url: URL(string: bundle.user.image) ?? URL(fileURLWithPath: "")) { phase in
                 switch phase {
                 case .empty:
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    Color.gray.opacity(0.8)
+                        .frame(width: 40, height: 40)
+                        .clipShape(Circle())
                 case .failure(let error):
                     let _ =  print(error)
                 case .success(let image):
