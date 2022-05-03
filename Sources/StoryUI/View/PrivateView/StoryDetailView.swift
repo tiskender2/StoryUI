@@ -187,10 +187,8 @@ extension StoryDetailView {
     }
     
     private func start(index: Int) {
-        if storyData.currentStoryUser == model.id {
-            if !model.stories[index].isReady {
-                model.stories[index].isReady = true
-            }
+        if !model.stories[index].isReady {
+            model.stories[index].isReady = true
         }
     }
     
