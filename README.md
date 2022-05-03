@@ -50,7 +50,7 @@ var body: some View {
     }
 ```
 ## Requirements
-- iOS 15+
+- iOS 14+
 - Swift 5.6+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
