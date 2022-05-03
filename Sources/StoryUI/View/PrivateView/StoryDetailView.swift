@@ -164,8 +164,9 @@ extension StoryDetailView {
     private func updateStory(direction: StoryDirectionEnum = .next) {
         if direction == .previous {
             getPreviousStory()
+        } else {
+            getNextStory()
         }
-        getNextStory()
     }
     
     private func tapNextStory() {
