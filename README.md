@@ -4,6 +4,7 @@ Create stories with just single line code
 
 <a href="https://circleci.com/gh/badges/shields/tree/master">
         <img src="https://img.shields.io/circleci/project/github/badges/shields/master" alt="build status"></a>
+        
 ## Installation
 
 Use **Swift Package Manager**
