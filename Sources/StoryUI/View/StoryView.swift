@@ -12,6 +12,7 @@ public struct StoryView: View {
     @StateObject private var storyData = StoryViewModel()
     @Binding private var isPresented: Bool
     
+    // Private properties
     private var stories: [StoryUIModel]
     private var selectedIndex: Int
     
