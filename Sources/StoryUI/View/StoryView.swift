@@ -12,6 +12,7 @@ public struct StoryView: View {
     
     @Binding private var isPresented: Bool
     
+    // Private properties
     private var stories: [StoryUIModel]
     private var selectedIndex: Int
     
