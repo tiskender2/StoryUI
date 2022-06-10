@@ -8,8 +8,8 @@
 import SwiftUI
 
 public struct StoryView: View {
-    @StateObject private var storyData = StoryViewModel()
     
+    @StateObject private var storyData = StoryViewModel()
     @Binding private var isPresented: Bool
     
     private var stories: [StoryUIModel]
