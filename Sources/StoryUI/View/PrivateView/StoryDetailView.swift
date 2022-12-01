@@ -149,9 +149,7 @@ extension StoryDetailView {
             if timerProgress < CGFloat(model.stories.count) {
                 if model.stories[index].isReady {
                     getProgressBarFrame(duration: model.stories[index].duration)
-                    if model.stories[index].type == .video {
-                        NotificationCenter.default.post(name: .restartVideo, object: nil)
-                    } else {
+                    if model.stories[index].type == .image {
                         NotificationCenter.default.post(name: .stopVideo, object: nil)
                     }
                 }

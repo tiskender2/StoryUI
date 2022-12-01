@@ -28,12 +28,12 @@ class CacheManager: NSObject {
         let file = directoryFor(stringUrl: stringUrl)
         //return file path if already exists in cache directory
         guard !fileManager.fileExists(atPath: file.path)  else {
-            completionHandler(Result.success(file))
+            completionHandler(.success(file))
             return
         }
 
         guard let url = URL(string: stringUrl) else {
-            completionHandler(Result.failure("url error"))
+            completionHandler(.failure("url error"))
             return
         }
         
@@ -45,12 +45,12 @@ class CacheManager: NSObject {
                 return
             }
             guard let data = data as? NSData else {
-                completionHandler(Result.failure("cache error"))
+                completionHandler(.failure("cache error"))
                 return
             }
             data.write(to: file, atomically: true)
             DispatchQueue.main.async {
-                completionHandler(Result.success(file))
+                completionHandler(.success(file))
             }
 
         }).resume()
