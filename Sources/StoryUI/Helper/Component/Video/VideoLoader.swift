@@ -12,14 +12,14 @@ import AVKit
 class PlayerView: UIView {
     
     // MARK: Public Properties
-    var player: AVPlayer? = AVPlayer()
+    var player: AVPlayer?
     var duration: Double = 0.0
     var state: MediaState = .notStarted
     var videoLength: ((MediaState,Double) -> ())?
     
     // MARK: Private Properties
     private let playerLayer = AVPlayerLayer()
-    private var previewTimer:Timer?
+    private var previewTimer: Timer?
     private var url: URL?
     
      // MARK: - Initializers
@@ -94,31 +94,26 @@ class PlayerView: UIView {
         }
     }
     
-    private func stopVideo2() {
-        player?.pause()
-        player?.seek(to: .zero)
-    }
-    
+
     
     private func setupPlayer(_ url: URL) {
-        self.player = nil
-        self.player = AVPlayer(url: url)
-        self.player?.addObserver(self, forKeyPath: "timeControlStatus", options: NSKeyValueObservingOptions.new, context: nil)
+        self.player?.replaceCurrentItem(with: nil)
+        self.player?.replaceCurrentItem(with: AVPlayerItem(url: url))
+        self.player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
         self.getVideoLength(videoURL: url)
-        if player?.timeControlStatus == .paused {
+        if player?.timeControlStatus != .playing {
             self.player?.play()
-            print("play 2")
         }
         self.playerLayer.player = self.player
         self.playerLayer.videoGravity = .resizeAspectFill
         self.playerLayer.backgroundColor = UIColor.black.cgColor
+        playerLayer.removeFromSuperlayer()
         self.layer.addSublayer(self.playerLayer)
     }
     
     private func addObserverToVideo() {
         NotificationCenter.default.addObserver(self, selector: #selector(restartVideoObserver), name: .restartVideo, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(stopVideoObserver), name: .stopVideo, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(stopVideoObserver2), name: .stopVideo2, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(stopAndRestartVideoObserver), name: .stopAndRestartVideo, object: nil)
     }
 }
@@ -167,7 +162,4 @@ extension PlayerView {
         stopVideo()
     }
     
-    @objc private func stopVideoObserver2() {
-        stopVideo2()
-    }
 }

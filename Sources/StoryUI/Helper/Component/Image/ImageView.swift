@@ -19,8 +19,6 @@ struct ImageView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: ImageLoader, context: Context) {
-        print("ImageLoader")
-       // NotificationCenter.default.post(name: .stopVideo2, object: nil)
         uiView.loadImageWithUrl(imageURL, imageIsLoaded: imageIsLoaded)
     }
     

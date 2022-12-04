@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 public struct StoryView: View {
     

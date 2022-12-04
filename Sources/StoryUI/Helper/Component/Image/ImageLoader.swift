@@ -59,7 +59,7 @@ class ImageLoader: UIView {
         
         addIndicator()
         
-        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
+        let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
         session.dataTask(with: imageURL, completionHandler: { [weak self] (data, response, error) in
             guard let self = self else { return }
             if error != nil {

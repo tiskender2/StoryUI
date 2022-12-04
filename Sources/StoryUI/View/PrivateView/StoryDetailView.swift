@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AVKit
 
 struct StoryDetailView: View {
     @EnvironmentObject var storyData: StoryViewModel
@@ -16,6 +17,7 @@ struct StoryDetailView: View {
     @State var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
     @State var timerProgress: CGFloat = 0
     @State private var state: MediaState = .notStarted
+    @State private var player = AVPlayer()
     
     var body: some View {
         
@@ -27,11 +29,16 @@ struct StoryDetailView: View {
                     case .image:
                         ImageView(imageURL: story.mediaURL) {
                             start(index: index)
+                        }.onAppear() {
+                           resetAVPlayer()
                         }
                     case .video:
-                        VideoView(videoURL: story.mediaURL, state: $state) { media, duration in
+                        VideoView(videoURL: story.mediaURL, state: $state, player: player) { media, duration in
                             model.stories[index].duration = duration
                             start(index: index)
+                           
+                        }.onAppear() {
+                            playVideo()
                         }
                     }
                 }
@@ -149,9 +156,6 @@ extension StoryDetailView {
             if timerProgress < CGFloat(model.stories.count) {
                 if model.stories[index].isReady {
                     getProgressBarFrame(duration: model.stories[index].duration)
-                    if model.stories[index].type == .image {
-                        NotificationCenter.default.post(name: .stopVideo, object: nil)
-                    }
                 }
             } else {
                 updateStory()
@@ -202,5 +206,15 @@ extension StoryDetailView {
     
     private func getCurrentIndex() -> Int {
         return min(Int(timerProgress), model.stories.count - 1)
+    }
+    
+    private func resetAVPlayer() {
+        player.pause()
+        player = AVPlayer()
+       
+    }
+    
+    private func playVideo() {
+        player.play()
     }
 }
