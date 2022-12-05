@@ -13,13 +13,18 @@ struct VideoView: UIViewRepresentable {
     // MARK: Public Properties
     var videoURL: String
     @Binding var state: MediaState
+    var player: AVPlayer
     let videoLength: (MediaState, Double) -> Void
     
     func makeUIView(context: Context) -> PlayerView {
-        return PlayerView(frame: .zero)
+        let playerView = PlayerView(frame: .zero)
+        playerView.player = player
+        return playerView
     }
     
     func updateUIView(_ playerView: PlayerView, context: Context) {
+      
+       // print("updateUIView")
         playerView.startVideo(url: URL(string: videoURL))
         playerView.videoLength = { state, duration in
             self.videoLength(state,playerView.duration)

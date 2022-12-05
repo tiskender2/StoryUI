@@ -12,14 +12,14 @@ import AVKit
 class PlayerView: UIView {
     
     // MARK: Public Properties
-    var player: AVPlayer = AVPlayer()
+    var player: AVPlayer?
     var duration: Double = 0.0
     var state: MediaState = .notStarted
     var videoLength: ((MediaState,Double) -> ())?
     
     // MARK: Private Properties
     private let playerLayer = AVPlayerLayer()
-    private var previewTimer:Timer?
+    private var previewTimer: Timer?
     private var url: URL?
     
      // MARK: - Initializers
@@ -62,10 +62,10 @@ class PlayerView: UIView {
   
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "timeControlStatus" {
-            if player.timeControlStatus == .playing {
+            if player?.timeControlStatus == .playing {
                 removeActivityIndicatory()
                 videoLength?(state, duration)
-            } else if player.timeControlStatus == .waitingToPlayAtSpecifiedRate {
+            } else if player?.timeControlStatus == .waitingToPlayAtSpecifiedRate {
                 addActivityIndicatory()
             }
         }
@@ -76,33 +76,38 @@ class PlayerView: UIView {
     }
     
     private func stopAndRestartVideo() {
-        stopVideo()
-        player.play()
+        player?.seek(to: .zero)
     }
     
     private func stopVideo() {
-        if player.timeControlStatus == .playing {
-            player.pause()
-            player.seek(to: .zero)
+        if player?.timeControlStatus == .playing {
+            player?.pause()
+            player?.seek(to: .zero)
         }
     }
     
     func restartVideo() {
-        if player.timeControlStatus == .paused {
-            player.seek(to: .zero)
-            player.play()
+        if player?.timeControlStatus == .paused {
+            player?.seek(to: .zero)
+            player?.play()
             state = .restart
         }
     }
     
+
+    
     private func setupPlayer(_ url: URL) {
-        self.player = AVPlayer(url: url)
-        self.player.addObserver(self, forKeyPath: "timeControlStatus", options: NSKeyValueObservingOptions.new, context: nil)
+        self.player?.replaceCurrentItem(with: nil)
+        self.player?.replaceCurrentItem(with: AVPlayerItem(url: url))
+        self.player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
         self.getVideoLength(videoURL: url)
-        self.player.play()
+        if player?.timeControlStatus != .playing {
+            self.player?.play()
+        }
         self.playerLayer.player = self.player
         self.playerLayer.videoGravity = .resizeAspectFill
         self.playerLayer.backgroundColor = UIColor.black.cgColor
+        playerLayer.removeFromSuperlayer()
         self.layer.addSublayer(self.playerLayer)
     }
     
@@ -156,4 +161,5 @@ extension PlayerView {
     @objc private func stopVideoObserver() {
         stopVideo()
     }
+    
 }
