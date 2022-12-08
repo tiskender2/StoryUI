@@ -17,14 +17,14 @@ struct UserView: View {
     @Binding var isPresented: Bool
     
     var body: some View {
-        HStack(spacing: 13) {            
+        HStack(spacing: Constant.UserView.hStackSpace) {            
             CacheAsyncImage(urlString: bundle.user.image)
             VStack(alignment: .leading) {
                 Text(bundle.user.name)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 Text(date)
-                    .font(.system(size: 16, weight: .thin))
+                    .font(.system(size: Constant.UserView.textSize, weight: .thin))
                     .foregroundColor(.white)
             }
             
@@ -33,7 +33,7 @@ struct UserView: View {
             Button(action: {
                 isPresented = false
             }, label: {
-                Image(systemName: "xmark")
+                Image(systemName: Constant.UserView.closeImage)
                     .font(.title)
                     .foregroundColor(.white)
             })
