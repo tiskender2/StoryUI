@@ -24,7 +24,8 @@ struct StoryDetailView: View {
         GeometryReader { proxy in
             let index = getCurrentIndex()
             ZStack {
-                if let story = model.stories[index] {
+                if model.stories.count > index {
+                    let story = model.stories[index]
                     switch story.type {
                     case .image:
                         ImageView(imageURL: story.mediaURL) {
