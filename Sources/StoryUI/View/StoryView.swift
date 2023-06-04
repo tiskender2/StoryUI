@@ -40,6 +40,7 @@ public struct StoryView: View {
                     }
                 }
             }
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear() {

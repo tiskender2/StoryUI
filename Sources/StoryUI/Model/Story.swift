@@ -8,7 +8,7 @@
 import Foundation
 
 public struct Story: Identifiable, Hashable {
-    public var id = UUID().uuidString
+    public var id: String
     public var mediaURL: String
     public var date: String
     public var type: StoryUIMediaType

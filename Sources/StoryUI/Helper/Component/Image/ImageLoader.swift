@@ -82,13 +82,13 @@ class ImageLoader: UIView {
     }
     
     fileprivate func addConst() {
-        imageView.frame.size.width = UIScreen.main.bounds.width
-        imageView.frame.size.height = UIScreen.main.bounds.height
+        imageView.frame.size.width = self.frame.size.width
+        imageView.frame.size.height = self.frame.size.height
         self.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             imageView.leadingAnchor.constraint(equalTo: self.leadingAnchor,constant: 0),
             imageView.rightAnchor.constraint(equalTo: self.rightAnchor,constant: 0),
-            imageView.bottomAnchor.constraint(equalTo: self.bottomAnchor,constant: 0),
+            imageView.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor,constant: 0),
             imageView.topAnchor.constraint(equalTo: self.topAnchor,constant: 0),
         ])
     }

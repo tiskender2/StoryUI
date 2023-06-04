@@ -8,7 +8,7 @@
 import Foundation
 
 public struct StoryUIUser: Identifiable, Hashable {
-    public var id = UUID().uuidString
+    public var id: String
     public var name: String
     public var image: String
     

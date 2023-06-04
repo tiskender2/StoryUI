@@ -1,14 +1,16 @@
 //
 //  SwiftUIView.swift
-//  
+//
 //
 //  Created by Tolga İskender on 1.05.2022.
 //
 
 import SwiftUI
 import AVKit
+import Combine
 
 struct StoryDetailView: View {
+    // MARK: Public Properties
     @EnvironmentObject var storyData: StoryViewModel
     
     @Binding var model: StoryUIModel
@@ -16,8 +18,20 @@ struct StoryDetailView: View {
     
     @State var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
     @State var timerProgress: CGFloat = 0
+    
+    // MARK: Private Properties
+    @StateObject private var keyboardManager = KeyboardManager()
     @State private var state: MediaState = .notStarted
     @State private var player = AVPlayer()
+    @State private var animate = false
+    
+    private var messageViewPosition: CGFloat {
+       return -keyboardManager.currentHeight
+    }
+    
+    private var emojiViewPositon: CGFloat {
+        return (messageViewPosition * 1.5)
+    }
     
     var body: some View {
         
@@ -25,47 +39,45 @@ struct StoryDetailView: View {
             let index = getCurrentIndex()
             ZStack {
                 if model.stories.count > index {
-                    let story = model.stories[index]
-                    switch story.type {
-                    case .image:
-                        ImageView(imageURL: story.mediaURL) {
-                            start(index: index)
-                        }.onAppear() {
-                           resetAVPlayer()
-                        }
-                    case .video:
-                        VideoView(videoURL: story.mediaURL, state: $state, player: player) { media, duration in
-                            model.stories[index].duration = duration
-                            start(index: index)
-                           
-                        }.onAppear() {
-                            playVideo()
-                        }
+                    VStack(spacing: 8) {
+                        getStoryView(with: index)
+                            .overlay(
+                                HStack {
+                                    Rectangle()
+                                        .fill(.black.opacity(0.01))
+                                        .onTapGesture {
+                                            tapPreviousStory()
+                                        }
+                                    Rectangle()
+                                        .fill(.black.opacity(0.01))
+                                        .onTapGesture {
+                                            tapNextStory()
+                                        }
+                                }
+                            )
+                            MessageView()
+                                .padding()
+                                .animation(messageViewPosition == 0 ? .none : .easeOut)
+                                .offset(y: messageViewPosition)
                     }
                 }
+                VStack {
+                    Spacer()
+                    EmojiView()
+                        .animation(messageViewPosition == 0 ? .none : .easeOut)
+                        .offset(y: emojiViewPositon)
+                        .opacity(messageViewPosition == 0 ? 0 : 1)
+                }
+               
+               
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .overlay(
-                HStack {
-                    Rectangle()
-                        .fill(.black.opacity(0.01))
-                        .onTapGesture {
-                            tapPreviousStory()
-                        }
-                    
-                    Rectangle()
-                        .fill(.black.opacity(0.01))
-                        .onTapGesture {
-                            tapNextStory()
-                        }
-                }
-            )
-            .overlay(
-                UserView(bundle: model,
-                         date: model.stories[index].date,
-                         isPresented: $isPresented)
-                .environmentObject(storyData)
-                ,alignment: .topTrailing
+                        .overlay(
+                            UserView(bundle: model,
+                                     date: model.stories[index].date,
+                                     isPresented: $isPresented)
+                            .environmentObject(storyData)
+                            ,alignment: .topTrailing
             )
             .overlay(
                 HStack(spacing: Constant.progressBarSpacing) {
@@ -88,25 +100,47 @@ struct StoryDetailView: View {
             resetProgress()
         })
         .onReceive(timer) { _ in
-            startProgress()
+            //startProgress()
+        }
+    }
+}
+
+// MARK: Private Configuration
+private extension StoryDetailView {
+    
+    @ViewBuilder
+    func getStoryView(with index: Int) -> some View {
+        let story = model.stories[index]
+        switch story.type {
+        case .image:
+            ImageView(imageURL: story.mediaURL) {
+                start(index: index)
+            }
+            .onAppear() {
+                resetAVPlayer()
+            }
+        case .video:
+            VideoView(videoURL: story.mediaURL, state: $state, player: player) { media, duration in
+                model.stories[index].duration = duration
+                start(index: index)
+            }.onAppear() {
+                playVideo()
+            }
         }
     }
     
-}
-
-extension StoryDetailView {
-    private func getAngle(proxy: GeometryProxy) -> Angle {
+    func getAngle(proxy: GeometryProxy) -> Angle {
         let rotation: CGFloat = 45
         let progress = proxy.frame(in: .global).minX / proxy.size.width
         let degrees = rotation * progress
         return Angle(degrees: degrees)
     }
     
-    private func resetProgress() {
+    func resetProgress() {
         timerProgress = 0
     }
     
-    private func getPreviousStory() {
+    func getPreviousStory() {
         
         if let first = storyData.stories.first, first.id != model.id {
             
@@ -127,7 +161,7 @@ extension StoryDetailView {
         return
     }
     
-    private func getNextStory() {
+    func getNextStory() {
         let index = getCurrentIndex()
         let story = model.stories[index]
         
@@ -148,7 +182,7 @@ extension StoryDetailView {
         }
     }
     
-    private func startProgress() {
+    func startProgress() {
         let index = getCurrentIndex()
         if storyData.currentStoryUser == model.id {
             if !model.isSeen {
@@ -164,7 +198,7 @@ extension StoryDetailView {
         }
     }
     
-    private func updateStory(direction: StoryDirectionEnum = .next) {
+    func updateStory(direction: StoryDirectionEnum = .next) {
         if direction == .previous {
             getPreviousStory()
         } else {
@@ -172,7 +206,7 @@ extension StoryDetailView {
         }
     }
     
-    private func tapNextStory() {
+    func tapNextStory() {
         if (timerProgress + 1) > CGFloat(model.stories.count) {
             //next user
             updateStory()
@@ -182,7 +216,7 @@ extension StoryDetailView {
         }
     }
     
-    private func tapPreviousStory() {
+    func tapPreviousStory() {
         if (timerProgress - 1) < 0 {
             updateStory(direction: .previous)
         } else {
@@ -190,32 +224,31 @@ extension StoryDetailView {
         }
     }
     
-    private func start(index: Int) {
+    func start(index: Int) {
         if !model.stories[index].isReady {
             model.stories[index].isReady = true
         }
     }
     
-    private func getProgressBarFrame(duration: Double) {
+    func getProgressBarFrame(duration: Double) {
         let calculatedDuration = storyData.getVideoProgressBarFrame(duration: duration)
         timerProgress += (0.01 / calculatedDuration)
     }
     
-    private func dissmis() {
+    func dissmis() {
         isPresented = false
     }
     
-    private func getCurrentIndex() -> Int {
+    func getCurrentIndex() -> Int {
         return min(Int(timerProgress), model.stories.count - 1)
     }
     
-    private func resetAVPlayer() {
+    func resetAVPlayer() {
         player.pause()
         player = AVPlayer()
-       
     }
     
-    private func playVideo() {
+    func playVideo() {
         player.play()
     }
 }
