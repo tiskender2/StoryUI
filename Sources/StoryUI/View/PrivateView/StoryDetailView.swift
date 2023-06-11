@@ -7,7 +7,6 @@
 
 import SwiftUI
 import AVKit
-import Combine
 
 struct StoryDetailView: View {
     // MARK: Public Properties
@@ -19,17 +18,20 @@ struct StoryDetailView: View {
     @State var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
     @State var timerProgress: CGFloat = 0
     
+    let userClosure: UserCompletionHandler?
+    
     // MARK: Private Properties
     @StateObject private var keyboardManager = KeyboardManager()
     @State private var state: MediaState = .notStarted
     @State private var player = AVPlayer()
     @State private var animate = false
+    @State private var startAnimate = false
     
     private var messageViewPosition: CGFloat {
-       return -keyboardManager.currentHeight
+        return -keyboardManager.currentHeight
     }
     
-    private var emojiViewPositon: CGFloat {
+    private var emojiViewPosition: CGFloat {
         return (messageViewPosition * 1.5)
     }
     
@@ -37,10 +39,11 @@ struct StoryDetailView: View {
         
         GeometryReader { proxy in
             let index = getCurrentIndex()
+            let story = model.stories[index]
             ZStack {
                 if model.stories.count > index {
                     VStack(spacing: 8) {
-                        getStoryView(with: index)
+                        getStoryView(with: index, story: story)
                             .overlay(
                                 HStack {
                                     Rectangle()
@@ -55,29 +58,21 @@ struct StoryDetailView: View {
                                         }
                                 }
                             )
-                            MessageView()
-                                .padding()
-                                .animation(messageViewPosition == 0 ? .none : .easeOut)
-                                .offset(y: messageViewPosition)
+                        MessageView(storyType: story.config.storyType, userClosure: userClosure)
+                            .padding()
+                            .animation(messageViewPosition == 0 ? .none : .easeOut)
+                            .offset(y: messageViewPosition)
                     }
                 }
-                VStack {
-                    Spacer()
-                    EmojiView()
-                        .animation(messageViewPosition == 0 ? .none : .easeOut)
-                        .offset(y: emojiViewPositon)
-                        .opacity(messageViewPosition == 0 ? 0 : 1)
-                }
-               
-               
+                getEmojiView(story: story)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .overlay(
-                            UserView(bundle: model,
-                                     date: model.stories[index].date,
-                                     isPresented: $isPresented)
-                            .environmentObject(storyData)
-                            ,alignment: .topTrailing
+            .overlay(
+                UserView(bundle: model,
+                         date: model.stories[index].date,
+                         isPresented: $isPresented)
+                .environmentObject(storyData)
+                ,alignment: .topTrailing
             )
             .overlay(
                 HStack(spacing: Constant.progressBarSpacing) {
@@ -86,7 +81,7 @@ struct StoryDetailView: View {
                                         index: index)
                     }
                 }
-                .padding(.horizontal)
+                    .padding(.horizontal)
                 
                 ,alignment: .top
             )
@@ -109,9 +104,8 @@ struct StoryDetailView: View {
 private extension StoryDetailView {
     
     @ViewBuilder
-    func getStoryView(with index: Int) -> some View {
-        let story = model.stories[index]
-        switch story.type {
+    func getStoryView(with index: Int, story: Story) -> some View {
+        switch story.config.mediaType {
         case .image:
             ImageView(imageURL: story.mediaURL) {
                 start(index: index)
@@ -127,6 +121,32 @@ private extension StoryDetailView {
                 playVideo()
             }
         }
+    }
+    
+    @ViewBuilder
+    func getEmojiView(story: Story) -> some View {
+        switch story.config.storyType {
+        case .message(let emojis, _):
+            if let emojis {
+                VStack {
+                    Spacer()
+                    EmojiView(emojiArray: emojis,
+                              startAnimating: $startAnimate,
+                              userClosure: userClosure)
+                    .animation(messageViewPosition == 0 ? .none : .easeOut)
+                    .offset(y: emojiViewPosition)
+                    .opacity(messageViewPosition == 0 ? 0 : 1)
+                }
+                
+                if startAnimate {
+                    EmojiReactionView()
+                }
+                
+            }
+        case .plain:
+            Divider()
+        }
+        
     }
     
     func getAngle(proxy: GeometryProxy) -> Angle {
@@ -153,7 +173,7 @@ private extension StoryDetailView {
             }
         } else {
             let index = getCurrentIndex()
-            if model.stories[index].type == .video {
+            if model.stories[index].config.mediaType == .video {
                 NotificationCenter.default.post(name: .stopAndRestartVideo, object: nil)
                 resetProgress()
             }

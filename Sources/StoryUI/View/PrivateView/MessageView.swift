@@ -9,6 +9,9 @@ import SwiftUI
 
 struct MessageView: View {
     
+    // MARK: Public Properties
+    @State var storyType: StoryType
+    let userClosure: UserCompletionHandler?
     
     // MARK: Private Properties
     @State private var text: String = ""
@@ -16,9 +19,16 @@ struct MessageView: View {
     var body: some View {
         HStack(spacing: 16) {
             ZStack {
-                TextField("", text: $text)
+                switch storyType {
+                case .plain:
+                    Spacer()
+                        .frame(height: Constant.MessageView.height)
+                case .message(_, let placeholder):
+                    TextField("",
+                              text: $text,
+                              onCommit: onCommitAction)
                     .placeholder(when: text.isEmpty, view: {
-                        Text("Send Message").foregroundColor(.white)
+                        Text(placeholder).foregroundColor(.white)
                     })
                     .foregroundColor(.white)
                     .frame(height: Constant.MessageView.height)
@@ -27,6 +37,7 @@ struct MessageView: View {
                         RoundedRectangle(cornerRadius: Constant.MessageView.cornerRadius)
                             .stroke(.white)
                     )
+                }
             }
             
             Button {
@@ -46,9 +57,21 @@ struct MessageView: View {
     }
 }
 
+private extension MessageView {
+    var onCommitAction: () -> Void {
+        return {
+            guard !text.isEmpty else {
+                return
+            }
+            
+            userClosure?(text, nil, false, false)
+        }
+    }
+}
+
 struct MessageView_Previews: PreviewProvider {
     static var previews: some View {
-        MessageView()
+        MessageView(storyType: .plain, userClosure: nil)
     }
 }
 
