@@ -11,7 +11,6 @@ struct MessageView: View {
     
     // MARK: Public Properties
     @State var storyType: StoryType
-   // @Binding var isTimerRunning: Bool
     let userClosure: UserCompletionHandler?
     
     // MARK: Private Properties
@@ -65,7 +64,6 @@ private extension MessageView {
             guard !text.isEmpty else {
                 return
             }
-            
             userClosure?(text, nil, false, false)
         }
     }

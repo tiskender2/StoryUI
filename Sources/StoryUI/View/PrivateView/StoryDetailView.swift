@@ -77,6 +77,13 @@ struct StoryDetailView: View {
         .onReceive(timer) { _ in
             startProgress()
         }
+        .onChange(of: keyboardManager.isKeyboardOpen) { keyboard in
+            configureProgress(with: keyboard)
+        }
+        .onChange(of: isAnimationStarted) { animation in
+           configureProgress(with: animation)
+        }
+        
     }
 }
 
@@ -219,7 +226,6 @@ private extension StoryDetailView {
     }
     
     func startProgress() {
-        configureProgress()
         guard !isTimerRunning else { return }
         
         let index = getCurrentIndex()
@@ -310,14 +316,11 @@ private extension StoryDetailView {
         }
     }
     
-    func configureProgress() {
-        if !keyboardManager.isKeyboardOpen && !isAnimationStarted {
-            isTimerRunning = false
-           // pauseVideo()
-        } else {
-            //playVideo()
-            isTimerRunning = true
-        }
+    func configureProgress(with state: Bool) {
+        let index = getCurrentIndex()
+        let mediaType = model.stories[index].config.mediaType
+        (state && mediaType == .video) ? pauseVideo() : playVideo()
+        isTimerRunning.toggle()
     }
 }
 
