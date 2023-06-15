@@ -39,8 +39,8 @@ public struct StoryView: View {
             ZStack {
                 Color.black.ignoresSafeArea()
                 TabView(selection: $storyData.currentStoryUser) {
-                    ForEach($storyData.stories) { $model in
-                        StoryDetailView(model: $model,
+                    ForEach(storyData.stories) { model in
+                        StoryDetailView(model: model,
                                         isPresented: $isPresented,
                                         userClosure: userClosure)
                         .environmentObject(storyData)

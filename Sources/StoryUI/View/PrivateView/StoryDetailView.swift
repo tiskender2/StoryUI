@@ -12,21 +12,25 @@ struct StoryDetailView: View {
     // MARK: Public Properties
     @EnvironmentObject var storyData: StoryViewModel
     
-    @Binding var model: StoryUIModel
+    @State var model: StoryUIModel
     @Binding var isPresented: Bool
     
     @State var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
     @State var timerProgress: CGFloat = 0
+
     
     let userClosure: UserCompletionHandler?
     
     // MARK: Private Properties
-    @StateObject private var keyboardManager = KeyboardManager()
+    @ObservedObject private var keyboardManager = KeyboardManager()
     @State private var state: MediaState = .notStarted
     @State private var player = AVPlayer()
     @State private var animate = false
-    @State private var startAnimate = false
     @State private var selectedEmoji = ""
+    @State private var startAnimate = false
+    @State private var isTimerRunning: Bool = false
+    @State private var isAnimationStarted: Bool = false
+    @State private var isTapDisabled: Bool = false
     
     private var messageViewPosition: CGFloat {
         return -keyboardManager.currentHeight
@@ -116,7 +120,9 @@ private extension StoryDetailView {
                 }
                 
                 if startAnimate {
-                    EmojiReactionView(dissmis: $startAnimate, emoji: selectedEmoji)
+                    EmojiReactionView(dissmis: $startAnimate,
+                                      isAnimationStarted: $isAnimationStarted,
+                                      emoji: selectedEmoji)
                 }
                 
             }
@@ -143,6 +149,7 @@ private extension StoryDetailView {
         }
     }
     
+    @ViewBuilder
     func tapStory() -> some View {
         HStack {
             Rectangle()
@@ -212,6 +219,9 @@ private extension StoryDetailView {
     }
     
     func startProgress() {
+        configureProgress()
+        guard !isTimerRunning else { return }
+        
         let index = getCurrentIndex()
         if storyData.currentStoryUser == model.id {
             if !model.isSeen {
@@ -236,6 +246,8 @@ private extension StoryDetailView {
     }
     
     func tapNextStory() {
+        configureTapScreen()
+        guard !isTapDisabled else { return }
         if (timerProgress + 1) > CGFloat(model.stories.count) {
             //next user
             updateStory()
@@ -246,6 +258,8 @@ private extension StoryDetailView {
     }
     
     func tapPreviousStory() {
+        configureTapScreen()
+        guard !isTapDisabled else { return }
         if (timerProgress - 1) < 0 {
             updateStory(direction: .previous)
         } else {
@@ -277,8 +291,33 @@ private extension StoryDetailView {
         player = AVPlayer()
     }
     
+    func pauseVideo() {
+        player.pause()
+    }
+    
     func playVideo() {
         player.play()
+    }
+    
+    func configureTapScreen() {
+        switch (keyboardManager.isKeyboardOpen, isAnimationStarted) {
+        case (true, _):
+            isTapDisabled = true
+        case (false, true):
+            isTapDisabled = true
+        default:
+            isTapDisabled = false
+        }
+    }
+    
+    func configureProgress() {
+        if !keyboardManager.isKeyboardOpen && !isAnimationStarted {
+            isTimerRunning = false
+           // pauseVideo()
+        } else {
+            //playVideo()
+            isTimerRunning = true
+        }
     }
 }
 

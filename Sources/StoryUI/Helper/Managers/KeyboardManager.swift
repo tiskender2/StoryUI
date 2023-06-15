@@ -11,6 +11,8 @@ import UIKit
 final class KeyboardManager: ObservableObject {
     
     @Published private(set) var currentHeight: CGFloat = 0
+    @Published private(set) var isKeyboardOpen = false
+
     private var notificationCenter: NotificationCenter
     
     init(center: NotificationCenter = .default) {
@@ -30,10 +32,12 @@ final class KeyboardManager: ObservableObject {
     @objc func keyBoardWillShow(notification: Notification) {
         if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
             currentHeight = keyboardSize.height - UIApplication.bottomSafeAreaHeight
+            isKeyboardOpen = true
         }
     }
     
     @objc func keyBoardWillHide(notification: Notification) {
+        isKeyboardOpen = false
         currentHeight = 0
     }
 }

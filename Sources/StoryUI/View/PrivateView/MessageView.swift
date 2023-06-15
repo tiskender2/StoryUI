@@ -11,10 +11,12 @@ struct MessageView: View {
     
     // MARK: Public Properties
     @State var storyType: StoryType
+   // @Binding var isTimerRunning: Bool
     let userClosure: UserCompletionHandler?
     
     // MARK: Private Properties
     @State private var text: String = ""
+    
     
     var body: some View {
         HStack(spacing: 16) {

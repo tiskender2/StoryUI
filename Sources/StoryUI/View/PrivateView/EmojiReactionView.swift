@@ -10,6 +10,7 @@ import SwiftUI
 struct EmojiReactionView: View {
     @State private var showReaction = false
     @Binding var dissmis: Bool
+    @Binding var isAnimationStarted: Bool
     @State var emoji: String
     
     var body: some View {
@@ -31,20 +32,22 @@ struct EmojiReactionView: View {
             }
         }
         .onAppear {
+            isAnimationStarted = true
             showReaction.toggle()
             performDelayedAction()
         }
-    }
-    
-    func didCompletedAnimation() {
-        print("Animation completed!")
-        dissmis.toggle()
     }
     
     func performDelayedAction() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             didCompletedAnimation()
         }
+    }
+    
+    func didCompletedAnimation() {
+        print("Animation completed!")
+        isAnimationStarted = false
+        dissmis = false
     }
 }
 
@@ -67,7 +70,9 @@ private extension EmojiReactionView {
 
 struct BubblesView_Previews: PreviewProvider {
     static var previews: some View {
-        EmojiReactionView(dissmis: .constant(true), emoji: "🤪")
+        EmojiReactionView(dissmis: .constant(true),
+                          isAnimationStarted: .constant(false),
+                          emoji: "🤪")
             .preferredColorScheme(.dark)
     }
 }
