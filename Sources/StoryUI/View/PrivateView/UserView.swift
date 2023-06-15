@@ -38,7 +38,7 @@ struct UserView: View {
                     .foregroundColor(.white)
             })
         }
-        .padding()
+        .padding(.horizontal)
     }
 }
 

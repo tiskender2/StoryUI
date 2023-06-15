@@ -7,31 +7,43 @@
 
 import SwiftUI
 
-
 struct EmojiReactionView: View {
     @State private var showReaction = false
+    @Binding var dissmis: Bool
+    @State var emoji: String
     
     var body: some View {
         GeometryReader { reader in
-            VStack(spacing: 0) {
+            VStack {
                 Spacer()
                 ForEach((1...2).reversed(), id: \.self) { index in
                     ZStack(alignment: .bottom) {
                         ForEach((1...10).reversed(), id: \.self) { index in
-                            Text("🤪")
+                            Text(emoji)
                                 .font(.system(size: 40))
                                 .offset(y: getHeight(with: reader, position: 140))
                                 .offset(x: getWidth(with: reader, index: index))
-                                .opacity(showReaction ? 0.5 : 1)
-                                .animation(.easeInOut(duration: Double.random(in: 0.5...2))
-                                           .delay(1), value: showReaction)
+                                .opacity(showReaction ? 0 : 1)
+                                .animation(.easeInOut(duration: Double.random(in: 2...3.5)), value: showReaction)
                         }
                     }
                 }
             }
         }
-        .onAppear{
+        .onAppear {
             showReaction.toggle()
+            performDelayedAction()
+        }
+    }
+    
+    func didCompletedAnimation() {
+        print("Animation completed!")
+        dissmis.toggle()
+    }
+    
+    func performDelayedAction() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            didCompletedAnimation()
         }
     }
 }
@@ -47,17 +59,15 @@ private extension EmojiReactionView {
     }
     
     func getHeight(with reader: GeometryProxy, position: Double) -> Double {
-        return showReaction ? -(reader.size.height/2) : position
+        return showReaction ? -(reader.size.height / 2) : position
         
     }
-    
-    
     
 }
 
 struct BubblesView_Previews: PreviewProvider {
     static var previews: some View {
-        EmojiReactionView()
+        EmojiReactionView(dissmis: .constant(true), emoji: "🤪")
             .preferredColorScheme(.dark)
     }
 }

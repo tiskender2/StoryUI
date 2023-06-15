@@ -26,6 +26,7 @@ struct StoryDetailView: View {
     @State private var player = AVPlayer()
     @State private var animate = false
     @State private var startAnimate = false
+    @State private var selectedEmoji = ""
     
     private var messageViewPosition: CGFloat {
         return -keyboardManager.currentHeight
@@ -45,18 +46,7 @@ struct StoryDetailView: View {
                     VStack(spacing: 8) {
                         getStoryView(with: index, story: story)
                             .overlay(
-                                HStack {
-                                    Rectangle()
-                                        .fill(.black.opacity(0.01))
-                                        .onTapGesture {
-                                            tapPreviousStory()
-                                        }
-                                    Rectangle()
-                                        .fill(.black.opacity(0.01))
-                                        .onTapGesture {
-                                            tapNextStory()
-                                        }
-                                }
+                                tapStory()
                             )
                         MessageView(storyType: story.config.storyType, userClosure: userClosure)
                             .padding()
@@ -68,21 +58,7 @@ struct StoryDetailView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .overlay(
-                UserView(bundle: model,
-                         date: model.stories[index].date,
-                         isPresented: $isPresented)
-                .environmentObject(storyData)
-                ,alignment: .topTrailing
-            )
-            .overlay(
-                HStack(spacing: Constant.progressBarSpacing) {
-                    ForEach(model.stories.indices) { index in
-                        ProgressBarView(timerProgress: timerProgress,
-                                        index: index)
-                    }
-                }
-                    .padding(.horizontal)
-                
+                getUserInfoAndProgressBar(with: index)
                 ,alignment: .top
             )
             .rotation3DEffect(getAngle(proxy: proxy),
@@ -95,7 +71,7 @@ struct StoryDetailView: View {
             resetProgress()
         })
         .onReceive(timer) { _ in
-            //startProgress()
+            startProgress()
         }
     }
 }
@@ -132,6 +108,7 @@ private extension StoryDetailView {
                     Spacer()
                     EmojiView(emojiArray: emojis,
                               startAnimating: $startAnimate,
+                              selectedEmoji: $selectedEmoji,
                               userClosure: userClosure)
                     .animation(messageViewPosition == 0 ? .none : .easeOut)
                     .offset(y: emojiViewPosition)
@@ -139,14 +116,46 @@ private extension StoryDetailView {
                 }
                 
                 if startAnimate {
-                    EmojiReactionView()
+                    EmojiReactionView(dissmis: $startAnimate, emoji: selectedEmoji)
                 }
                 
             }
         case .plain:
             Divider()
         }
-        
+    }
+    
+    @ViewBuilder
+    func getUserInfoAndProgressBar(with index: Int) -> some View {
+        VStack {
+            HStack(spacing: Constant.progressBarSpacing) {
+                ForEach(model.stories.indices) { index in
+                    ProgressBarView(timerProgress: timerProgress,
+                                    index: index)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            UserView(bundle: model,
+                     date: model.stories[index].date,
+                     isPresented: $isPresented)
+            .environmentObject(storyData)
+        }
+    }
+    
+    func tapStory() -> some View {
+        HStack {
+            Rectangle()
+                .fill(.black.opacity(0.01))
+                .onTapGesture {
+                    tapPreviousStory()
+                }
+            Rectangle()
+                .fill(.black.opacity(0.01))
+                .onTapGesture {
+                    tapNextStory()
+                }
+        }
     }
     
     func getAngle(proxy: GeometryProxy) -> Angle {
@@ -270,5 +279,11 @@ private extension StoryDetailView {
     
     func playVideo() {
         player.play()
+    }
+}
+
+struct Previews_StoryDetailView_Previews: PreviewProvider {
+    static var previews: some View {
+        /*@START_MENU_TOKEN@*/Text("Hello, World!")/*@END_MENU_TOKEN@*/
     }
 }

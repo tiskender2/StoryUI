@@ -18,7 +18,7 @@ class ImageLoader: UIView {
      // MARK: - Initializers
     init() {
         super.init(frame: .zero)
-        self.addSubview(imageView)
+        setupImageView()
     }
     
     required init?(coder: NSCoder) {
@@ -81,7 +81,19 @@ class ImageLoader: UIView {
         }).resume()
     }
     
-    fileprivate func addConst() {
+}
+// MARK: - Private Funcs
+private extension ImageLoader {
+   func setupImageView() {
+       self.addSubview(imageView)
+       imageView.layer.cornerRadius = 12
+       imageView.clipsToBounds = true
+   }
+}
+// MARK: - Const funcs
+extension ImageLoader {
+    
+    private func addConst() {
         imageView.frame.size.width = self.frame.size.width
         imageView.frame.size.height = self.frame.size.height
         self.translatesAutoresizingMaskIntoConstraints = false
@@ -102,6 +114,8 @@ class ImageLoader: UIView {
         activityIndicator.startAnimating()
     }
 }
+
+// MARK: - URLSessionDelegate
 extension ImageLoader: URLSessionDelegate {
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         let urlCredential = URLCredential(trust: challenge.protectionSpace.serverTrust!)

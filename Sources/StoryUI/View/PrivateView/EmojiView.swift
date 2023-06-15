@@ -12,6 +12,7 @@ struct EmojiView: View {
     var emojiArray: [[String]]?
     
     @Binding var startAnimating: Bool
+    @Binding var selectedEmoji: String
     
     let userClosure: UserCompletionHandler?
     
@@ -38,6 +39,7 @@ struct EmojiView: View {
                             Button(emojiArray[index][icon]) {
                                 let emoji = emojiArray[index][icon]
                                 startAnimate()
+                                select(emoji: emoji)
                                 dismissKeyboard()
                                 userClosure?(nil, emoji, false, false)
                             }
@@ -54,6 +56,10 @@ struct EmojiView: View {
         UIApplication.shared.windows.filter {$0.isKeyWindow}.first?.endEditing(true)
     }
     
+    private func select(emoji: String) {
+        selectedEmoji = emoji
+    }
+    
     private func startAnimate() {
        startAnimating = true
     }
@@ -63,6 +69,7 @@ struct EmojiView_Previews: PreviewProvider {
     static var previews: some View {
         EmojiView(emojiArray: [["😂", "😮", "😍"]],
                   startAnimating: .constant(false),
+                  selectedEmoji: .constant("🤪"),
                   userClosure: nil)
     }
 }
