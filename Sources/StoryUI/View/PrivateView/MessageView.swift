@@ -21,41 +21,17 @@ struct MessageView: View {
         HStack(spacing: 16) {
             ZStack {
                 switch storyType {
-                case .plain:
-                    Spacer()
-                        .frame(height: Constant.MessageView.height)
-                case .message(_, let placeholder):
-                    TextField("",
-                              text: $text,
-                              onCommit: onCommitAction)
-                    .placeholder(when: text.isEmpty, view: {
-                        Text(placeholder).foregroundColor(.white)
-                    })
-                    .foregroundColor(.white)
-                    .frame(height: Constant.MessageView.height)
-                    .padding(Constant.MessageView.padding)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Constant.MessageView.cornerRadius)
-                            .stroke(.white)
-                    )
+                case .plain(let config):
+                    HStack {
+                        Spacer()
+                        buttonViewBuilder(config)
+                    }
+                case .message(let config, _, let placeholder):
+                    messageViewBuilder(config, placeholder)
                 default:
                     EmptyView()
                 }
             }
-            
-            Button {
-            } label: {
-                Image(systemName: Constant.MessageView.likeImage)
-                    .font(.title2)
-                    .foregroundColor(.white)
-            }
-            Button {
-            } label: {
-                Image(systemName: Constant.MessageView.shareImage)
-                    .font(.title2)
-                    .foregroundColor(.white)
-            }
-            
         }
     }
 }
@@ -69,11 +45,71 @@ private extension MessageView {
             userClosure?(text, nil, false, false)
         }
     }
+    
+    var likeButton: some View  {
+        Button {
+        } label: {
+            Image(systemName: Constant.MessageView.likeImage)
+                .font(.title2)
+                .foregroundColor(.white)
+        }
+    }
+    
+    var shareButton: some View  {
+        Button {
+        } label: {
+            Image(systemName: Constant.MessageView.shareImage)
+                .font(.title2)
+                .foregroundColor(.white)
+        }
+    }
+    
+    @ViewBuilder
+    func buttonViewBuilder(_ config: StoryInteractionConfig?) -> some View {
+        if let config {
+            HStack(spacing: 16) {
+                switch (config.showLikeButton, config.showShareButton) {
+                case (true, true):
+                    likeButton
+                    shareButton
+                case (true, false):
+                    likeButton
+                case (false, true):
+                    shareButton
+                default:
+                    EmptyView()
+                }
+            }
+            .frame(height: Constant.MessageView.height)
+        } else {
+            EmptyView()
+        }
+    }
+    
+    
+    func messageViewBuilder(_ config: StoryInteractionConfig?, _ placeholder: String) -> some View {
+        HStack(spacing: 16) {
+            TextField("",
+                      text: $text,
+                      onCommit: onCommitAction)
+            .placeholder(when: text.isEmpty, view: {
+                Text(placeholder).foregroundColor(.white)
+            })
+            .foregroundColor(.white)
+            .frame(height: Constant.MessageView.height)
+            .padding(Constant.MessageView.padding)
+            .overlay(
+                RoundedRectangle(cornerRadius: Constant.MessageView.cornerRadius)
+                    .stroke(.white)
+            )
+            buttonViewBuilder(config)
+        }
+    }
 }
 
 struct MessageView_Previews: PreviewProvider {
     static var previews: some View {
-        MessageView(storyType: .plain, userClosure: nil)
+        MessageView(storyType: .plain(), userClosure: nil)
     }
 }
 

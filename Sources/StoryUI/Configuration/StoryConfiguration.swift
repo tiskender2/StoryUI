@@ -11,7 +11,7 @@ public struct StoryConfiguration: Equatable, Hashable {
     public var storyType: StoryType
     public var mediaType: StoryUIMediaType
     
-    public init(storyType: StoryType = .plain, mediaType: StoryUIMediaType) {
+    public init(storyType: StoryType = .plain(), mediaType: StoryUIMediaType) {
         self.storyType = storyType
         self.mediaType = mediaType
     }

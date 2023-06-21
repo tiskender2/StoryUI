@@ -111,7 +111,7 @@ private extension StoryDetailView {
     @ViewBuilder
     func getEmojiView(story: Story) -> some View {
         switch story.config.storyType {
-        case .message(let emojis, _):
+        case .message(_, let emojis, _):
             if let emojis {
                 VStack {
                     Spacer()
