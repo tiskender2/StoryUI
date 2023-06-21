@@ -16,7 +16,7 @@ struct MessageView: View {
     // MARK: Private Properties
     @State private var text: String = ""
     @State private var likeButtonTapped: Bool = false
-    
+    @State private var clearText: Bool = false
     
     var body: some View {
         HStack(spacing: 16) {
@@ -43,6 +43,7 @@ private extension MessageView {
             guard !text.isEmpty else {
                 return
             }
+            clearText.toggle()
             userClosure?(text, nil, false, false)
         }
     }
@@ -98,6 +99,9 @@ private extension MessageView {
             .placeholder(when: text.isEmpty, view: {
                 Text(placeholder).foregroundColor(.white)
             })
+            .onChange(of: clearText, perform: { newValue in
+                text = ""
+            })
             .foregroundColor(.white)
             .frame(height: Constant.MessageView.height)
             .padding(Constant.MessageView.padding)
@@ -105,6 +109,7 @@ private extension MessageView {
                 RoundedRectangle(cornerRadius: Constant.MessageView.cornerRadius)
                     .stroke(.white)
             )
+            
             buttonViewBuilder(config)
         }
     }

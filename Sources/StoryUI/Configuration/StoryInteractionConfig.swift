@@ -9,11 +9,10 @@ import Foundation
 
 public struct StoryInteractionConfig: Equatable, Hashable {
     let showLikeButton: Bool
-    let showShareButton: Bool
+    let showShareButton: Bool = false
     
-    public init(showLikeButton: Bool = false, showShareButton: Bool = false) {
+    public init(showLikeButton: Bool = false) {
         self.showLikeButton = showLikeButton
-        self.showShareButton = showShareButton
     }
     
 }
