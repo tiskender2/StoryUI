@@ -9,8 +9,6 @@ import SwiftUI
 
 struct UserView: View {
     
-    @EnvironmentObject var storyData: StoryViewModel
-    
     var bundle: StoryUIModel
     var date: String
     

@@ -17,6 +17,8 @@ class PlayerView: UIView {
     var state: MediaState = .notStarted
     var videoLength: ((MediaState,Double) -> ())?
     
+    let contentView = UIView()
+    
     // MARK: Private Properties
     private let playerLayer = AVPlayerLayer()
     private var previewTimer: Timer?
@@ -27,6 +29,7 @@ class PlayerView: UIView {
         super.init(frame: frame)
         self.layer.cornerRadius = 12
         self.clipsToBounds = true
+        setupPlayer()
     }
     
     deinit {
@@ -36,11 +39,7 @@ class PlayerView: UIView {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        playerLayer.frame = bounds
-    }
+
     
     func startVideo(url: URL?) {
         guard let validatedUrl = url else { return }
@@ -73,7 +72,7 @@ class PlayerView: UIView {
         }
     }
     
-    func getVideoLength(videoURL: URL) {
+    private func getVideoLength(videoURL: URL) {
         duration = AVURLAsset(url: videoURL).duration.seconds
     }
     
@@ -85,6 +84,7 @@ class PlayerView: UIView {
         if player?.timeControlStatus == .playing {
             player?.pause()
             player?.seek(to: .zero)
+            state = .stopped
         }
     }
     
@@ -102,15 +102,17 @@ class PlayerView: UIView {
         self.player?.replaceCurrentItem(with: nil)
         self.player?.replaceCurrentItem(with: AVPlayerItem(url: url))
         self.player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
+        self.player?.automaticallyWaitsToMinimizeStalling = false
         self.getVideoLength(videoURL: url)
         if player?.timeControlStatus != .playing {
             self.player?.play()
+            state = .started
         }
         self.playerLayer.player = self.player
         self.playerLayer.videoGravity = .resizeAspectFill
         self.playerLayer.backgroundColor = UIColor.black.cgColor
         playerLayer.removeFromSuperlayer()
-        self.layer.addSublayer(self.playerLayer)
+        self.contentView.layer.addSublayer(self.playerLayer)
     }
     
     private func addObserverToVideo() {
@@ -121,7 +123,7 @@ class PlayerView: UIView {
 }
 
 extension PlayerView {
-    fileprivate func addActivityIndicatory() {
+    private func addActivityIndicatory() {
         removeActivityIndicatory()
         let w = UIScreen.main.bounds.width
         let h = UIScreen.main.bounds.height
@@ -136,7 +138,21 @@ extension PlayerView {
         activityView.startAnimating()
     }
     
-    fileprivate func removeActivityIndicatory() {
+    private func setupPlayer() {
+        self.addSubview(contentView)
+        contentView.frame.size.width = self.frame.size.width
+        contentView.frame.size.height = self.frame.size.height
+        self.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            contentView.leadingAnchor.constraint(equalTo: self.leadingAnchor,constant: 0),
+            contentView.rightAnchor.constraint(equalTo: self.rightAnchor,constant: 0),
+            contentView.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor,constant: 0),
+            contentView.topAnchor.constraint(equalTo: self.topAnchor,constant: 0),
+        ])
+        playerLayer.frame = contentView.frame
+    }
+    
+    private func removeActivityIndicatory() {
        self.subviews.forEach { (view) in
             if view.tag == 999 {
                 view.removeFromSuperview()
@@ -144,7 +160,7 @@ extension PlayerView {
         }
     }
     
-    fileprivate func addConst(view: UIActivityIndicatorView) {
+    private func addConst(view: UIActivityIndicatorView) {
         view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             view.centerXAnchor.constraint(equalTo: view.superview!.centerXAnchor),

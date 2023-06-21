@@ -77,13 +77,10 @@ struct StoryDetailView: View {
         .onReceive(timer) { _ in
             startProgress()
         }
-        .onChange(of: keyboardManager.isKeyboardOpen) { keyboard in
-            configureProgress(with: keyboard)
+        .onChange(of: isAnimationStarted ? isAnimationStarted : keyboardManager.isKeyboardOpen) { state in
+            configureProgress(with: state)
+            isTimerRunning = state
         }
-        .onChange(of: isAnimationStarted) { animation in
-           configureProgress(with: animation)
-        }
-        
     }
 }
 
@@ -104,7 +101,8 @@ private extension StoryDetailView {
             VideoView(videoURL: story.mediaURL, state: $state, player: player) { media, duration in
                 model.stories[index].duration = duration
                 start(index: index)
-            }.onAppear() {
+            }
+            .onAppear() {
                 playVideo()
             }
         }
@@ -302,6 +300,7 @@ private extension StoryDetailView {
     }
     
     func playVideo() {
+        player.automaticallyWaitsToMinimizeStalling = false
         player.play()
     }
     
@@ -318,9 +317,17 @@ private extension StoryDetailView {
     
     func configureProgress(with state: Bool) {
         let index = getCurrentIndex()
-        let mediaType = model.stories[index].config.mediaType
-        (state && mediaType == .video) ? pauseVideo() : playVideo()
-        isTimerRunning.toggle()
+        guard let story = storyData.getStory(with: index) else { return }
+        let mediaType = story.config.mediaType
+        if state, mediaType == .video {
+            pauseVideo()
+        } else if !state, mediaType == .video {
+            guard let currentItem = player.currentItem,
+                  let urlAsset = currentItem.asset as? AVURLAsset,
+                  story.mediaURL.contains( urlAsset.url.lastPathComponent) else { return }
+            
+            playVideo()
+        }
     }
 }
 

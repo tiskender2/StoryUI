@@ -10,7 +10,7 @@ import SwiftUI
 struct MessageView: View {
     
     // MARK: Public Properties
-    @State var storyType: StoryType
+    @State var storyType: StoryType?
     let userClosure: UserCompletionHandler?
     
     // MARK: Private Properties
@@ -38,6 +38,8 @@ struct MessageView: View {
                         RoundedRectangle(cornerRadius: Constant.MessageView.cornerRadius)
                             .stroke(.white)
                     )
+                default:
+                    EmptyView()
                 }
             }
             

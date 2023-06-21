@@ -45,7 +45,6 @@ struct EmojiReactionView: View {
     }
     
     func didCompletedAnimation() {
-        print("Animation completed!")
         isAnimationStarted = false
         dissmis = false
     }
