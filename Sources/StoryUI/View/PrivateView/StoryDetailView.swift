@@ -31,6 +31,7 @@ struct StoryDetailView: View {
     @State private var isTimerRunning: Bool = false
     @State private var isAnimationStarted: Bool = false
     @State private var isTapDisabled: Bool = false
+    @State private var showEmoji: Bool = true
     
     private var messageViewPosition: CGFloat {
         return -keyboardManager.currentHeight
@@ -53,7 +54,9 @@ struct StoryDetailView: View {
                                 tapStory()
                                     .offset(y: story.config.storyType != .plain() ? -Constant.MessageView.height : .zero)
                             )
-                        MessageView(storyType: story.config.storyType, userClosure: userClosure)
+                        MessageView(storyType: story.config.storyType,
+                                    showEmoji: $showEmoji,
+                                    userClosure: userClosure)
                             .padding()
                             .animation(messageViewPosition == 0 ? .none : .easeOut)
                             .offset(y: messageViewPosition)
@@ -113,7 +116,7 @@ private extension StoryDetailView {
     func getEmojiView(story: Story) -> some View {
         switch story.config.storyType {
         case .message(_, let emojis, _):
-            if let emojis {
+            if let emojis, showEmoji {
                 VStack {
                     Spacer()
                     EmojiView(emojiArray: emojis,

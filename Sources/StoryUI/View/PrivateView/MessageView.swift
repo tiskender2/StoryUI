@@ -11,12 +11,14 @@ struct MessageView: View {
     
     // MARK: Public Properties
     @State var storyType: StoryType?
+    @Binding var showEmoji: Bool
     let userClosure: UserCompletionHandler?
     
     // MARK: Private Properties
     @State private var text: String = ""
     @State private var likeButtonTapped: Bool = false
     @State private var clearText: Bool = false
+   
     
     var body: some View {
         HStack(spacing: 16) {
@@ -99,9 +101,14 @@ private extension MessageView {
             .placeholder(when: text.isEmpty, view: {
                 Text(placeholder).foregroundColor(.white)
             })
+            .onChange(of: text, perform: { newValue in
+                showEmoji = newValue.isEmpty
+            })
             .onChange(of: clearText, perform: { newValue in
                 text = ""
+                showEmoji = newValue
             })
+            
             .foregroundColor(.white)
             .frame(height: Constant.MessageView.height)
             .padding(Constant.MessageView.padding)
@@ -117,7 +124,7 @@ private extension MessageView {
 
 struct MessageView_Previews: PreviewProvider {
     static var previews: some View {
-        MessageView(storyType: .plain(), userClosure: nil)
+        MessageView(storyType: .plain(), showEmoji: .constant(true), userClosure: nil)
     }
 }
 
