@@ -15,6 +15,7 @@ struct MessageView: View {
     
     // MARK: Private Properties
     @State private var text: String = ""
+    @State private var likeButtonTapped: Bool = false
     
     
     var body: some View {
@@ -48,10 +49,12 @@ private extension MessageView {
     
     var likeButton: some View  {
         Button {
+            likeButtonTapped.toggle()
         } label: {
-            Image(systemName: Constant.MessageView.likeImage)
+            Image(systemName: likeButtonTapped ? Constant.MessageView.likeImageTapped : Constant.MessageView.likeImage)
                 .font(.title2)
-                .foregroundColor(.white)
+                .foregroundColor(likeButtonTapped ? .red : .white)
+            
         }
     }
     

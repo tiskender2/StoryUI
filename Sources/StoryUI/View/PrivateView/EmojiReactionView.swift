@@ -62,7 +62,6 @@ private extension EmojiReactionView {
     
     func getHeight(with reader: GeometryProxy, position: Double) -> Double {
         return showReaction ? -(reader.size.height / 2) : position
-        
     }
     
 }

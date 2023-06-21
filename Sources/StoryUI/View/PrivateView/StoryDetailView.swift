@@ -51,6 +51,7 @@ struct StoryDetailView: View {
                         getStoryView(with: index, story: story)
                             .overlay(
                                 tapStory()
+                                    .offset(y: story.config.storyType != .plain() ? -Constant.MessageView.height : .zero)
                             )
                         MessageView(storyType: story.config.storyType, userClosure: userClosure)
                             .padding()

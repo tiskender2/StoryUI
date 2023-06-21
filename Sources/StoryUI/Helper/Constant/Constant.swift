@@ -25,6 +25,7 @@ enum Constant {
         static let padding = EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
         static let cornerRadius: CGFloat = 24
         static let likeImage: String = "heart"
+        static let likeImageTapped: String = "heart.fill"
         static let shareImage: String = "paperplane"
     }
     
