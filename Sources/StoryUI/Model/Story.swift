@@ -8,20 +8,26 @@
 import Foundation
 
 public struct Story: Identifiable, Hashable {
-    public var id = UUID().uuidString
+    public var id: String
     public var mediaURL: String
     public var date: String
-    public var type: StoryUIMediaType
     public var isReady: Bool = false
     public var duration: Double = Constant.storySecond
+    public var config: StoryConfiguration
     
-    public init(id: String = UUID().uuidString, mediaURL: String, date: String, type: StoryUIMediaType, isReady: Bool = false, duration: Double = 5) {
+    public init(id: String = UUID().uuidString,
+                mediaURL: String,
+                date: String,
+                isReady: Bool = false,
+                duration: Double = 5,
+                config: StoryConfiguration) {
+        
         self.id = id
         self.mediaURL = mediaURL
         self.date = date
-        self.type = type
         self.isReady = isReady
         self.duration = duration
+        self.config = config
         Constant.storySecond = duration
     }
 }

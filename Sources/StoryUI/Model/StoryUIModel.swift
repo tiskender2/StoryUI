@@ -8,7 +8,7 @@
 import Foundation
 
 public struct StoryUIModel: Identifiable, Hashable {
-    public var id = UUID().uuidString
+    public var id: String
     public var user: StoryUIUser
     public var isSeen: Bool = false
     public var stories: [Story]

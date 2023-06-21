@@ -7,25 +7,37 @@
 
 import Foundation
 
-public enum StoryUIMediaType {
+// MARK: - StoryType
+public enum StoryType: Equatable, Hashable {
+    case plain(config: StoryInteractionConfig? = nil)
+    case message(config: StoryInteractionConfig? = nil, emojis:[[String]]? = nil, placeholder: String)
+}
+
+// MARK: - StoryUIMediaType
+public enum StoryUIMediaType: Equatable {
     case image
     case video
 }
 
+// MARK: - StoryUIMediaStateType
 public enum StoryUIMediaStateType {
     case seen
     case notSeen
 }
 
+// MARK: - StoryDirectionEnum
 enum StoryDirectionEnum {
     case previous
     case next
 }
 
+ // MARK: - MediaState
 enum MediaState {
     case started
     case notStarted
     case restart
+    case ready
+    case stopped
 }
 
 

@@ -16,16 +16,22 @@ public struct StoryView: View {
     // Private properties
     private var stories: [StoryUIModel]
     private var selectedIndex: Int
+ 
+    // Public properties
+   
+    let userClosure: UserCompletionHandler?
+    
     
     /// Stories and isPresented requeired, selectedIndex is optional default: 0
     /// - Parameters:
     ///   - stories: all stories to show
     ///   - selectedIndex: current story index selected by user
     ///   - isPresented: to hide and show for closing storyView
-    public init(stories: [StoryUIModel], selectedIndex: Int = 0, isPresented: Binding<Bool>) {
+    public init(stories: [StoryUIModel], selectedIndex: Int = 0, isPresented: Binding<Bool>, userClosure: UserCompletionHandler?) {
         self.stories = stories
         self.selectedIndex = selectedIndex
         self._isPresented = isPresented
+        self.userClosure = userClosure
     }
     
     public var body: some View {
@@ -33,13 +39,15 @@ public struct StoryView: View {
             ZStack {
                 Color.black.ignoresSafeArea()
                 TabView(selection: $storyData.currentStoryUser) {
-                    ForEach($storyData.stories) { $model in
-                        StoryDetailView(model: $model,
-                                        isPresented: $isPresented)
+                    ForEach(storyData.stories) { model in
+                        StoryDetailView(model: model,
+                                        isPresented: $isPresented,
+                                        userClosure: userClosure)
                         .environmentObject(storyData)
                     }
                 }
             }
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear() {

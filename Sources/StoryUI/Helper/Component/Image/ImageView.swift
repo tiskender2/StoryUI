@@ -10,10 +10,9 @@ import AVKit
 
 struct ImageView: UIViewRepresentable {
     
-    var imageURL: String
+    var imageURL: String?
     let imageIsLoaded: () -> Void
    
-    
     func makeUIView(context: UIViewRepresentableContext<ImageView>) -> ImageLoader {
         return ImageLoader()
     }

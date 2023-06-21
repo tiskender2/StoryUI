@@ -12,7 +12,7 @@ public enum Result<T> {
     case failure(String)
 }
 
-class CacheManager: NSObject {
+final class CacheManager: NSObject {
 
     static let shared = CacheManager()
     

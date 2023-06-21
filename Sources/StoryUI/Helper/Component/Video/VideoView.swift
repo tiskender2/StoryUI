@@ -14,20 +14,18 @@ struct VideoView: UIViewRepresentable {
     var videoURL: String
     @Binding var state: MediaState
     var player: AVPlayer
-    let videoLength: (MediaState, Double) -> Void
+    let videoLength: ((MediaState, Double) -> Void)?
     
     func makeUIView(context: Context) -> PlayerView {
-        let playerView = PlayerView(frame: .zero)
+        let playerView = PlayerView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
         playerView.player = player
         return playerView
     }
     
     func updateUIView(_ playerView: PlayerView, context: Context) {
-      
-       // print("updateUIView")
         playerView.startVideo(url: URL(string: videoURL))
         playerView.videoLength = { state, duration in
-            self.videoLength(state,playerView.duration)
+            self.videoLength?(state, playerView.duration)
         }
     }
     

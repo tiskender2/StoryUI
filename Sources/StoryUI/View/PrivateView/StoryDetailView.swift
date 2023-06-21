@@ -1,6 +1,6 @@
 //
 //  SwiftUIView.swift
-//  
+//
 //
 //  Created by Tolga İskender on 1.05.2022.
 //
@@ -9,73 +9,61 @@ import SwiftUI
 import AVKit
 
 struct StoryDetailView: View {
+    // MARK: Public Properties
     @EnvironmentObject var storyData: StoryViewModel
     
-    @Binding var model: StoryUIModel
+    @State var model: StoryUIModel
     @Binding var isPresented: Bool
     
     @State var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
     @State var timerProgress: CGFloat = 0
+
+    
+    let userClosure: UserCompletionHandler?
+    
+    // MARK: Private Properties
+    @ObservedObject private var keyboardManager = KeyboardManager()
     @State private var state: MediaState = .notStarted
     @State private var player = AVPlayer()
+    @State private var animate = false
+    @State private var selectedEmoji = ""
+    @State private var startAnimate = false
+    @State private var isTimerRunning: Bool = false
+    @State private var isAnimationStarted: Bool = false
+    @State private var isTapDisabled: Bool = false
+    
+    private var messageViewPosition: CGFloat {
+        return -keyboardManager.currentHeight
+    }
+    
+    private var emojiViewPosition: CGFloat {
+        return (messageViewPosition * 1.5)
+    }
     
     var body: some View {
         
         GeometryReader { proxy in
             let index = getCurrentIndex()
+            let story = model.stories[index]
             ZStack {
                 if model.stories.count > index {
-                    let story = model.stories[index]
-                    switch story.type {
-                    case .image:
-                        ImageView(imageURL: story.mediaURL) {
-                            start(index: index)
-                        }.onAppear() {
-                           resetAVPlayer()
-                        }
-                    case .video:
-                        VideoView(videoURL: story.mediaURL, state: $state, player: player) { media, duration in
-                            model.stories[index].duration = duration
-                            start(index: index)
-                           
-                        }.onAppear() {
-                            playVideo()
-                        }
+                    VStack(spacing: 8) {
+                        getStoryView(with: index, story: story)
+                            .overlay(
+                                tapStory()
+                                    .offset(y: story.config.storyType != .plain() ? -Constant.MessageView.height : .zero)
+                            )
+                        MessageView(storyType: story.config.storyType, userClosure: userClosure)
+                            .padding()
+                            .animation(messageViewPosition == 0 ? .none : .easeOut)
+                            .offset(y: messageViewPosition)
                     }
                 }
+                getEmojiView(story: story)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .overlay(
-                HStack {
-                    Rectangle()
-                        .fill(.black.opacity(0.01))
-                        .onTapGesture {
-                            tapPreviousStory()
-                        }
-                    
-                    Rectangle()
-                        .fill(.black.opacity(0.01))
-                        .onTapGesture {
-                            tapNextStory()
-                        }
-                }
-            )
-            .overlay(
-                UserView(bundle: model,
-                         date: model.stories[index].date,
-                         isPresented: $isPresented)
-                .environmentObject(storyData)
-                ,alignment: .topTrailing
-            )
-            .overlay(
-                HStack(spacing: Constant.progressBarSpacing) {
-                    ForEach(model.stories.indices) { index in
-                        ProgressBarView(timerProgress: timerProgress,
-                                        index: index)
-                    }
-                }
-                .padding(.horizontal)
-                
+                getUserInfoAndProgressBar(with: index)
                 ,alignment: .top
             )
             .rotation3DEffect(getAngle(proxy: proxy),
@@ -90,23 +78,111 @@ struct StoryDetailView: View {
         .onReceive(timer) { _ in
             startProgress()
         }
+        .onChange(of: isAnimationStarted ? isAnimationStarted : keyboardManager.isKeyboardOpen) { state in
+            configureProgress(with: state)
+            isTimerRunning = state
+        }
     }
-    
 }
 
-extension StoryDetailView {
-    private func getAngle(proxy: GeometryProxy) -> Angle {
+// MARK: Private Configuration
+private extension StoryDetailView {
+    
+    @ViewBuilder
+    func getStoryView(with index: Int, story: Story) -> some View {
+        switch story.config.mediaType {
+        case .image:
+            ImageView(imageURL: story.mediaURL) {
+                start(index: index)
+            }
+            .onAppear() {
+                resetAVPlayer()
+            }
+        case .video:
+            VideoView(videoURL: story.mediaURL, state: $state, player: player) { media, duration in
+                model.stories[index].duration = duration
+                start(index: index)
+            }
+            .onAppear() {
+                playVideo()
+            }
+        }
+    }
+    
+    @ViewBuilder
+    func getEmojiView(story: Story) -> some View {
+        switch story.config.storyType {
+        case .message(_, let emojis, _):
+            if let emojis {
+                VStack {
+                    Spacer()
+                    EmojiView(emojiArray: emojis,
+                              startAnimating: $startAnimate,
+                              selectedEmoji: $selectedEmoji,
+                              userClosure: userClosure)
+                    .animation(messageViewPosition == 0 ? .none : .easeOut)
+                    .offset(y: emojiViewPosition)
+                    .opacity(messageViewPosition == 0 ? 0 : 1)
+                }
+                
+                if startAnimate {
+                    EmojiReactionView(dissmis: $startAnimate,
+                                      isAnimationStarted: $isAnimationStarted,
+                                      emoji: selectedEmoji)
+                }
+                
+            }
+        case .plain:
+            Divider()
+        }
+    }
+    
+    @ViewBuilder
+    func getUserInfoAndProgressBar(with index: Int) -> some View {
+        VStack {
+            HStack(spacing: Constant.progressBarSpacing) {
+                ForEach(model.stories.indices) { index in
+                    ProgressBarView(timerProgress: timerProgress,
+                                    index: index)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            UserView(bundle: model,
+                     date: model.stories[index].date,
+                     isPresented: $isPresented)
+            .environmentObject(storyData)
+        }
+    }
+    
+    @ViewBuilder
+    func tapStory() -> some View {
+        HStack {
+            Rectangle()
+                .fill(.black.opacity(0.01))
+                .onTapGesture {
+                    tapPreviousStory()
+                }
+            Rectangle()
+                .fill(.black.opacity(0.01))
+                .onTapGesture {
+                    tapNextStory()
+                }
+        }
+    }
+    
+    func getAngle(proxy: GeometryProxy) -> Angle {
         let rotation: CGFloat = 45
         let progress = proxy.frame(in: .global).minX / proxy.size.width
         let degrees = rotation * progress
         return Angle(degrees: degrees)
     }
     
-    private func resetProgress() {
+    func resetProgress() {
         timerProgress = 0
     }
     
-    private func getPreviousStory() {
+    func getPreviousStory() {
         
         if let first = storyData.stories.first, first.id != model.id {
             
@@ -119,7 +195,7 @@ extension StoryDetailView {
             }
         } else {
             let index = getCurrentIndex()
-            if model.stories[index].type == .video {
+            if model.stories[index].config.mediaType == .video {
                 NotificationCenter.default.post(name: .stopAndRestartVideo, object: nil)
                 resetProgress()
             }
@@ -127,7 +203,7 @@ extension StoryDetailView {
         return
     }
     
-    private func getNextStory() {
+    func getNextStory() {
         let index = getCurrentIndex()
         let story = model.stories[index]
         
@@ -148,7 +224,9 @@ extension StoryDetailView {
         }
     }
     
-    private func startProgress() {
+    func startProgress() {
+        guard !isTimerRunning else { return }
+        
         let index = getCurrentIndex()
         if storyData.currentStoryUser == model.id {
             if !model.isSeen {
@@ -164,7 +242,7 @@ extension StoryDetailView {
         }
     }
     
-    private func updateStory(direction: StoryDirectionEnum = .next) {
+    func updateStory(direction: StoryDirectionEnum = .next) {
         if direction == .previous {
             getPreviousStory()
         } else {
@@ -172,7 +250,9 @@ extension StoryDetailView {
         }
     }
     
-    private func tapNextStory() {
+    func tapNextStory() {
+        configureTapScreen()
+        guard !isTapDisabled else { return }
         if (timerProgress + 1) > CGFloat(model.stories.count) {
             //next user
             updateStory()
@@ -182,7 +262,9 @@ extension StoryDetailView {
         }
     }
     
-    private func tapPreviousStory() {
+    func tapPreviousStory() {
+        configureTapScreen()
+        guard !isTapDisabled else { return }
         if (timerProgress - 1) < 0 {
             updateStory(direction: .previous)
         } else {
@@ -190,32 +272,68 @@ extension StoryDetailView {
         }
     }
     
-    private func start(index: Int) {
+    func start(index: Int) {
         if !model.stories[index].isReady {
             model.stories[index].isReady = true
         }
     }
     
-    private func getProgressBarFrame(duration: Double) {
+    func getProgressBarFrame(duration: Double) {
         let calculatedDuration = storyData.getVideoProgressBarFrame(duration: duration)
         timerProgress += (0.01 / calculatedDuration)
     }
     
-    private func dissmis() {
+    func dissmis() {
         isPresented = false
     }
     
-    private func getCurrentIndex() -> Int {
+    func getCurrentIndex() -> Int {
         return min(Int(timerProgress), model.stories.count - 1)
     }
     
-    private func resetAVPlayer() {
+    func resetAVPlayer() {
         player.pause()
         player = AVPlayer()
-       
     }
     
-    private func playVideo() {
+    func pauseVideo() {
+        player.pause()
+    }
+    
+    func playVideo() {
+        player.automaticallyWaitsToMinimizeStalling = false
         player.play()
+    }
+    
+    func configureTapScreen() {
+        switch (keyboardManager.isKeyboardOpen, isAnimationStarted) {
+        case (true, _):
+            isTapDisabled = true
+        case (false, true):
+            isTapDisabled = true
+        default:
+            isTapDisabled = false
+        }
+    }
+    
+    func configureProgress(with state: Bool) {
+        let index = getCurrentIndex()
+        guard let story = storyData.getStory(with: index) else { return }
+        let mediaType = story.config.mediaType
+        if state, mediaType == .video {
+            pauseVideo()
+        } else if !state, mediaType == .video {
+            guard let currentItem = player.currentItem,
+                  let urlAsset = currentItem.asset as? AVURLAsset,
+                  story.mediaURL.contains( urlAsset.url.lastPathComponent) else { return }
+            
+            playVideo()
+        }
+    }
+}
+
+struct Previews_StoryDetailView_Previews: PreviewProvider {
+    static var previews: some View {
+        /*@START_MENU_TOKEN@*/Text("Hello, World!")/*@END_MENU_TOKEN@*/
     }
 }
