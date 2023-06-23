@@ -19,13 +19,17 @@ struct VideoView: UIViewRepresentable {
     func makeUIView(context: Context) -> PlayerView {
         let playerView = PlayerView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
         playerView.player = player
-        playerView.mediaState = mediaState
+        playerView.mediaState = { state, duration in
+            mediaState?(state, duration)
+        }
         return playerView
     }
     
     func updateUIView(_ playerView: PlayerView, context: Context) {
         playerView.startVideo(url: URL(string: videoURL))
-        playerView.mediaState = mediaState
+        playerView.mediaState = { state, duration in
+            mediaState?(state, duration)
+        }
     }
     
 }
