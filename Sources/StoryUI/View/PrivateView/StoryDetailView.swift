@@ -305,7 +305,10 @@ private extension StoryDetailView {
     
     func playVideo() {
         let index = getCurrentIndex()
-        if model.stories[index].isReady {
+        let bundleIndex = storyData.stories.firstIndex { currentBundle in
+            return model.id == currentBundle.id
+        } ?? 0
+        if model.stories[index].isReady, storyData.stories[bundleIndex].id == model.id, model.stories[index].config.mediaType == .video {
             player.automaticallyWaitsToMinimizeStalling = false
             player.play()
         }
