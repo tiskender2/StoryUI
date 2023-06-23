@@ -304,8 +304,11 @@ private extension StoryDetailView {
     }
     
     func playVideo() {
-        player.automaticallyWaitsToMinimizeStalling = false
-        player.play()
+        let index = getCurrentIndex()
+        if model.stories[index].isReady {
+            player.automaticallyWaitsToMinimizeStalling = false
+            player.play()
+        }
     }
     
     func configureTapScreen() {
@@ -321,15 +324,12 @@ private extension StoryDetailView {
     
     func configureProgress(with state: Bool) {
         let index = getCurrentIndex()
-        guard let story = storyData.getStory(with: index) else { return }
+        let story = model.stories[index]
         let mediaType = story.config.mediaType
         if state, mediaType == .video {
             pauseVideo()
         } else if !state, mediaType == .video {
-            guard let currentItem = player.currentItem,
-                  let urlAsset = currentItem.asset as? AVURLAsset,
-                  story.mediaURL.contains( urlAsset.url.lastPathComponent) else { return }
-            
+            guard storyData.currentStoryUser == model.id else { return }
             playVideo()
         }
     }
