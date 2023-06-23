@@ -15,7 +15,7 @@ class PlayerView: UIView {
     var player: AVPlayer?
     var duration: Double = 0.0
     var state: MediaState = .notStarted
-    var videoLength: ((MediaState,Double) -> ())?
+    var mediaState: ((MediaState,Double) -> ())?
     
     let contentView = UIView()
     
@@ -65,7 +65,7 @@ class PlayerView: UIView {
         if keyPath == "timeControlStatus" {
             if player?.timeControlStatus == .playing {
                 removeActivityIndicatory()
-                videoLength?(state, duration)
+                mediaState?(state, duration)
             } else if player?.timeControlStatus == .waitingToPlayAtSpecifiedRate {
                 addActivityIndicatory()
             }
@@ -113,6 +113,7 @@ class PlayerView: UIView {
         self.playerLayer.backgroundColor = UIColor.black.cgColor
         playerLayer.removeFromSuperlayer()
         self.contentView.layer.addSublayer(self.playerLayer)
+        mediaState?(state, duration)
     }
     
     private func addObserverToVideo() {
@@ -128,6 +129,7 @@ extension PlayerView {
         let w = UIScreen.main.bounds.width
         let h = UIScreen.main.bounds.height
         let view = UIView(frame: CGRect(x: 0, y: 0, width: w, height: h))
+        view.backgroundColor = .black
         view.tag = 999
         self.addSubview(view)
         let activityView = UIActivityIndicatorView(style: .large)
