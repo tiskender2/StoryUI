@@ -29,6 +29,7 @@ struct UserView: View {
             Spacer()
             
             Button(action: {
+                NotificationCenter.default.post(name: .replaceCurrentItem, object: nil)
                 isPresented = false
             }, label: {
                 Image(systemName: Constant.UserView.closeImage)

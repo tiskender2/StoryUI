@@ -120,6 +120,7 @@ class PlayerView: UIView {
         NotificationCenter.default.addObserver(self, selector: #selector(restartVideoObserver), name: .restartVideo, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(stopVideoObserver), name: .stopVideo, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(stopAndRestartVideoObserver), name: .stopAndRestartVideo, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(replaceCurrentItemObserver), name: .replaceCurrentItem, object: nil)
     }
 }
 
@@ -180,6 +181,10 @@ extension PlayerView {
     
     @objc private func stopVideoObserver() {
         stopVideo()
+    }
+    
+    @objc private func replaceCurrentItemObserver() {
+        self.player?.replaceCurrentItem(with: nil)
     }
     
 }
