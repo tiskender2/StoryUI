@@ -16,7 +16,7 @@ dependencies: [
 ```
 ## Example 
 ![example](https://user-images.githubusercontent.com/17899883/166338390-ac5988fc-b417-4c41-b35a-8b18eca61eac.gif)
-
+![](https://github.com/tiskender2/StoryUI/assets/17899883/80b08837-05da-48b0-92c2-b7b7000c8618)
 
 ## Usage
 
