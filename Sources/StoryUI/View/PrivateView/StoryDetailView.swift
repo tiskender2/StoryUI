@@ -74,9 +74,10 @@ struct StoryDetailView: View {
                               anchor: proxy.frame(in: .global).minX > 0 ? .leading : .trailing,
                               perspective: 2.5)
         }
-        .onAppear(perform: {
+        .onChange(of: storyData.currentStoryUser, perform: { newValue in
             NotificationCenter.default.post(name: .stopVideo, object: nil)
             resetProgress()
+            playVideo()
         })
         .onReceive(timer) { _ in
             startProgress()
@@ -105,10 +106,14 @@ private extension StoryDetailView {
             VideoView(videoURL: story.mediaURL, state: $state, player: player) { media, duration in
                 model.stories[index].duration = duration
                 start(index: index)
+                state = media
             }
-            .onAppear() {
-                playVideo()
-            }
+            .onChange(of: state, perform: { newValue in
+                if state == .started || state == .ready {
+                    print(state)
+                    playVideo()
+                }
+            })
         }
     }
     
@@ -295,7 +300,9 @@ private extension StoryDetailView {
     }
     
     func resetAVPlayer() {
-        player.pause()
+        Task {
+            player.pause()
+        }
         player = AVPlayer()
     }
     
@@ -305,12 +312,14 @@ private extension StoryDetailView {
     
     func playVideo() {
         let index = getCurrentIndex()
-        let bundleIndex = storyData.stories.firstIndex { currentBundle in
-            return model.id == currentBundle.id
-        } ?? 0
-        if model.stories[index].isReady, storyData.stories[bundleIndex].id == model.id, model.stories[index].config.mediaType == .video {
+        let currentUser = storyData.currentStoryUser == model.id
+        let video = model.stories[index].config.mediaType == .video
+        
+        if model.stories[index].isReady, currentUser, video {
             player.automaticallyWaitsToMinimizeStalling = false
-            player.play()
+            Task {
+                player.play()
+            }
         }
     }
     
