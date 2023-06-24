@@ -65,6 +65,7 @@ class PlayerView: UIView {
         if keyPath == "timeControlStatus" {
             if player?.timeControlStatus == .playing {
                 removeActivityIndicatory()
+                state = .started
                 mediaState?(state, duration)
             } else if player?.timeControlStatus == .waitingToPlayAtSpecifiedRate {
                 addActivityIndicatory()
@@ -104,16 +105,18 @@ class PlayerView: UIView {
         self.player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
         self.player?.automaticallyWaitsToMinimizeStalling = false
         self.getVideoLength(videoURL: url)
-        if player?.timeControlStatus != .playing {
-            self.player?.play()
-            state = .started
-        }
+//        if player?.timeControlStatus != .playing {
+//            self.player?.play()
+//            state = .started
+//        }
         self.playerLayer.player = self.player
         self.playerLayer.videoGravity = .resizeAspectFill
         self.playerLayer.backgroundColor = UIColor.black.cgColor
         playerLayer.removeFromSuperlayer()
         self.contentView.layer.addSublayer(self.playerLayer)
-        mediaState?(state, duration)
+        state = .ready
+        mediaState?(.ready, duration)
+      
     }
     
     private func addObserverToVideo() {
