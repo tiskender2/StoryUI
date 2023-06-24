@@ -108,19 +108,12 @@ private extension StoryDetailView {
                 start(index: index)
                 state = media
             }
-//            .onAppear() {
-//                playVideo()
-//            }
             .onChange(of: state, perform: { newValue in
                 if state == .started || state == .ready {
                     print(state)
                     playVideo()
                 }
             })
-            .onSubmit {
-                print("asdad")
-            }
-        }
     }
     
     @ViewBuilder
