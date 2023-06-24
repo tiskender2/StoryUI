@@ -29,11 +29,11 @@ struct ContentView: View {
      @State var stories = [
         StoryUIModel(user: StoryUIUser(name: "Tolga İskender", image: "https://image.tmdb.org/t/p/original/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg"), stories: [
             
-            Story(mediaURL: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+             Story(mediaURL: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
                   date: "30 min ago",
                   config: StoryConfiguration(storyType: .message(config: StoryInteractionConfig(showLikeButton: true),
-                                                                 emojis: [["😛","😛","😛"],
-                                                                          ["😛","😛","😛"]],
+                                                                 emojis: [["😂","😮","😍"],
+                                                                          ["😢","👏","🔥"]],
                                                                  placeholder: "Send Message"),
                                              mediaType: .video)),
             
