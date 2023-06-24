@@ -114,7 +114,6 @@ private extension StoryDetailView {
                     playVideo()
                 }
             })
-        }
     }
     
     @ViewBuilder
