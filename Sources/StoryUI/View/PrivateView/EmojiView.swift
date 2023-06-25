@@ -9,6 +9,7 @@ import SwiftUI
 
 struct EmojiView: View {
     
+    var story: Story
     var emojiArray: [[String]]?
     
     @Binding var startAnimating: Bool
@@ -41,7 +42,7 @@ struct EmojiView: View {
                                 startAnimate()
                                 select(emoji: emoji)
                                 dismissKeyboard()
-                                userClosure?(nil, emoji, false)
+                                userClosure?(story, nil, emoji, false)
                             }
                             .font(.system(size: emojiSize))
                         }
@@ -67,7 +68,8 @@ struct EmojiView: View {
 
 struct EmojiView_Previews: PreviewProvider {
     static var previews: some View {
-        EmojiView(emojiArray: [["😂", "😮", "😍"]],
+        EmojiView(story: .init(mediaURL: "", date: "", config: StoryConfiguration(mediaType: .image)),
+                  emojiArray: [["😂", "😮", "😍"]],
                   startAnimating: .constant(false),
                   selectedEmoji: .constant("🤪"),
                   userClosure: nil)

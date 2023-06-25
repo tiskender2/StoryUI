@@ -9,16 +9,16 @@ import SwiftUI
 
 struct UserView: View {
     
-    var bundle: StoryUIModel
+    var model: StoryUIModel
     var date: String
     
     @Binding var isPresented: Bool
     
     var body: some View {
         HStack(spacing: Constant.UserView.hStackSpace) {            
-            CacheAsyncImage(urlString: bundle.user.image)
+            CacheAsyncImage(urlString: model.user.image)
             VStack(alignment: .leading) {
-                Text(bundle.user.name)
+                Text(model.user.name)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 Text(date)

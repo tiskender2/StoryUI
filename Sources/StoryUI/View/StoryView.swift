@@ -18,11 +18,10 @@ public struct StoryView: View {
     private var selectedIndex: Int
  
     // Public properties
-   
     let userClosure: UserCompletionHandler?
     
     
-    /// Stories and isPresented requeired, selectedIndex is optional default: 0
+    /// Stories and isPresented required, selectedIndex is optional default: 0
     /// - Parameters:
     ///   - stories: all stories to show
     ///   - selectedIndex: current story index selected by user

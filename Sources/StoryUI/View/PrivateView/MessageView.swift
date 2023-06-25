@@ -10,7 +10,8 @@ import SwiftUI
 struct MessageView: View {
     
     // MARK: Public Properties
-    @State var storyType: StoryType?
+    var story: Story
+    
     @Binding var showEmoji: Bool
     let userClosure: UserCompletionHandler?
     
@@ -23,7 +24,7 @@ struct MessageView: View {
     var body: some View {
         HStack(spacing: 16) {
             ZStack {
-                switch storyType {
+                switch story.config.storyType {
                 case .plain(let config):
                     HStack {
                         Spacer()
@@ -31,8 +32,6 @@ struct MessageView: View {
                     }
                 case .message(let config, _, let placeholder):
                     messageViewBuilder(config, placeholder)
-                default:
-                    EmptyView()
                 }
             }
         }
@@ -46,13 +45,15 @@ private extension MessageView {
                 return
             }
             clearText.toggle()
-            userClosure?(text, nil, false)
+            userClosure?(story, text, nil, false)
         }
     }
+    
     
     var likeButton: some View  {
         Button {
             likeButtonTapped.toggle()
+            userClosure?(story, text, nil, likeButtonTapped)
         } label: {
             Image(systemName: likeButtonTapped ? Constant.MessageView.likeImageTapped : Constant.MessageView.likeImage)
                 .font(.title2)
@@ -100,7 +101,9 @@ private extension MessageView {
                 text = ""
                 showEmoji = newValue
             })
-            
+            .onChange(of: story, perform: { newValue in
+                likeButtonTapped = newValue.isLiked
+            })
             .foregroundColor(.white)
             .frame(height: Constant.MessageView.height)
             .padding(Constant.MessageView.padding)
@@ -116,7 +119,7 @@ private extension MessageView {
 
 struct MessageView_Previews: PreviewProvider {
     static var previews: some View {
-        MessageView(storyType: .plain(), showEmoji: .constant(true), userClosure: nil)
+        MessageView(story: Story(mediaURL: "", date: "", config: StoryConfiguration(mediaType: .image)), showEmoji: .constant(true), userClosure: nil)
     }
 }
 
