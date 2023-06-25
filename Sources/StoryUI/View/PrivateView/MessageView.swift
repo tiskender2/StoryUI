@@ -46,7 +46,7 @@ private extension MessageView {
                 return
             }
             clearText.toggle()
-            userClosure?(text, nil, false, false)
+            userClosure?(text, nil, false)
         }
     }
     
@@ -74,16 +74,8 @@ private extension MessageView {
     func buttonViewBuilder(_ config: StoryInteractionConfig?) -> some View {
         if let config {
             HStack(spacing: 16) {
-                switch (config.showLikeButton, config.showShareButton) {
-                case (true, true):
+                if config.showLikeButton {
                     likeButton
-                    shareButton
-                case (true, false):
-                    likeButton
-                case (false, true):
-                    shareButton
-                default:
-                    EmptyView()
                 }
             }
             .frame(height: Constant.MessageView.height)

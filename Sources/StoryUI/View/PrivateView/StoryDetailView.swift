@@ -110,10 +110,10 @@ private extension StoryDetailView {
             }
             .onChange(of: state, perform: { newValue in
                 if state == .started || state == .ready {
-                    print(state)
                     playVideo()
                 }
             })
+        }
     }
     
     @ViewBuilder

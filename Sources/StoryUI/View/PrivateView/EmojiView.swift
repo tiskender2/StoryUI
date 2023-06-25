@@ -41,7 +41,7 @@ struct EmojiView: View {
                                 startAnimate()
                                 select(emoji: emoji)
                                 dismissKeyboard()
-                                userClosure?(nil, emoji, false, false)
+                                userClosure?(nil, emoji, false)
                             }
                             .font(.system(size: emojiSize))
                         }
