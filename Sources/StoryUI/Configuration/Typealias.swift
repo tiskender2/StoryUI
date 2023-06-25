@@ -6,4 +6,4 @@
 //
 
 import Foundation
-public typealias UserCompletionHandler = (_ message: String?, _ emoji: String?, _ isLiked: Bool) -> Void
+public typealias UserCompletionHandler = (_ story: Story, _ message: String?, _ emoji: String?, _ isLiked: Bool) -> Void

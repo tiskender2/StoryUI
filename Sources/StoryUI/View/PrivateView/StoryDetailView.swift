@@ -54,12 +54,7 @@ struct StoryDetailView: View {
                                 tapStory()
                                     .offset(y: story.config.storyType != .plain() ? -Constant.MessageView.height : .zero)
                             )
-                        MessageView(storyType: story.config.storyType,
-                                    showEmoji: $showEmoji,
-                                    userClosure: userClosure)
-                            .padding()
-                            .animation(messageViewPosition == 0 ? .none : .easeOut)
-                            .offset(y: messageViewPosition)
+                        messageView(with: index)
                     }
                 }
                 getEmojiView(story: story)
@@ -108,7 +103,7 @@ private extension StoryDetailView {
                 start(index: index)
                 state = media
             }
-            .onChange(of: state, perform: { newValue in
+            .onChange(of: state, perform: { _ in
                 if state == .started || state == .ready {
                     playVideo()
                 }
@@ -118,12 +113,14 @@ private extension StoryDetailView {
     
     @ViewBuilder
     func getEmojiView(story: Story) -> some View {
+        let index = getCurrentIndex()
         switch story.config.storyType {
         case .message(_, let emojis, _):
             if let emojis, showEmoji {
                 VStack {
                     Spacer()
-                    EmojiView(emojiArray: emojis,
+                    EmojiView(story: getStory(with: index),
+                              emojiArray: emojis,
                               startAnimating: $startAnimate,
                               selectedEmoji: $selectedEmoji,
                               userClosure: userClosure)
@@ -146,6 +143,7 @@ private extension StoryDetailView {
     
     @ViewBuilder
     func getUserInfoAndProgressBar(with index: Int) -> some View {
+        let date = getStory(with: index).date
         VStack {
             HStack(spacing: Constant.progressBarSpacing) {
                 ForEach(model.stories.indices) { index in
@@ -155,11 +153,22 @@ private extension StoryDetailView {
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
-            UserView(bundle: model,
-                     date: model.stories[index].date,
+            UserView(model: model,
+                     date: date,
                      isPresented: $isPresented)
-            .environmentObject(storyData)
         }
+    }
+    
+    @ViewBuilder
+    func messageView(with index: Int) -> some View {
+        let story = getStory(with: index)
+        
+        MessageView(story: story,
+                    showEmoji: $showEmoji,
+                    userClosure: userClosure)
+        .padding()
+        .animation(messageViewPosition == 0 ? .none : .easeOut)
+        .offset(y: messageViewPosition)
     }
     
     @ViewBuilder
@@ -202,7 +211,8 @@ private extension StoryDetailView {
             }
         } else {
             let index = getCurrentIndex()
-            if model.stories[index].config.mediaType == .video {
+            let story = getStory(with: index)
+            if story.config.mediaType == .video {
                 NotificationCenter.default.post(name: .stopAndRestartVideo, object: nil)
                 resetProgress()
             }
@@ -212,7 +222,7 @@ private extension StoryDetailView {
     
     func getNextStory() {
         let index = getCurrentIndex()
-        let story = model.stories[index]
+        let story = getStory(with: index)
         
         if let last = model.stories.last, last.id == story.id {
             if let lastBundle = storyData.stories.last, lastBundle.id == model.id {
@@ -235,13 +245,15 @@ private extension StoryDetailView {
         guard !isTimerRunning else { return }
         
         let index = getCurrentIndex()
+        let story = getStory(with: index)
+        
         if storyData.currentStoryUser == model.id {
             if !model.isSeen {
                 model.isSeen = true
             }
             if timerProgress < CGFloat(model.stories.count) {
-                if model.stories[index].isReady {
-                    getProgressBarFrame(duration: model.stories[index].duration)
+                if story.isReady {
+                    getProgressBarFrame(duration: story.duration)
                 }
             } else {
                 updateStory()
@@ -296,6 +308,10 @@ private extension StoryDetailView {
     
     func getCurrentIndex() -> Int {
         return min(Int(timerProgress), model.stories.count - 1)
+    }
+    
+    func getStory(with index: Int) -> Story {
+        return model.stories[index]
     }
     
     func resetAVPlayer() {
