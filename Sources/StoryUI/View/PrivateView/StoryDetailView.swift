@@ -104,9 +104,7 @@ private extension StoryDetailView {
                 state = media
             }
             .onChange(of: state, perform: { _ in
-                if state == .started || state == .ready {
-                    playVideo()
-                }
+                playVideo()
             })
         }
     }
@@ -329,8 +327,9 @@ private extension StoryDetailView {
         let index = getCurrentIndex()
         let currentUser = storyData.currentStoryUser == model.id
         let video = model.stories[index].config.mediaType == .video
+        let isReady = state == .ready || state == .started
         
-        if model.stories[index].isReady, currentUser, video {
+        if isReady, currentUser, video {
             player.automaticallyWaitsToMinimizeStalling = false
             Task {
                 player.play()
@@ -359,11 +358,5 @@ private extension StoryDetailView {
             guard storyData.currentStoryUser == model.id else { return }
             playVideo()
         }
-    }
-}
-
-struct Previews_StoryDetailView_Previews: PreviewProvider {
-    static var previews: some View {
-        /*@START_MENU_TOKEN@*/Text("Hello, World!")/*@END_MENU_TOKEN@*/
     }
 }
