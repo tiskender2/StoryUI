@@ -105,10 +105,6 @@ class PlayerView: UIView {
         self.player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
         self.player?.automaticallyWaitsToMinimizeStalling = false
         self.getVideoLength(videoURL: url)
-//        if player?.timeControlStatus != .playing {
-//            self.player?.play()
-//            state = .started
-//        }
         self.playerLayer.player = self.player
         self.playerLayer.videoGravity = .resizeAspectFill
         self.playerLayer.backgroundColor = UIColor.black.cgColor
