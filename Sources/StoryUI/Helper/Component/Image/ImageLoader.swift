@@ -8,7 +8,7 @@
 import Combine
 import UIKit
 
-class ImageLoader: UIView {
+final class ImageLoader: UIView {
     
     // MARK: Public Properties
     var imageURL: URL?
@@ -31,56 +31,61 @@ class ImageLoader: UIView {
     }
     
     func loadImageWithUrl(_ url: String?, imageIsLoaded: @escaping () -> Void) {
-       
+
         guard let validatedUrl = url else {
             print("url error")
             return
         }
-        
+
         if imageURL == URL(string: validatedUrl) {
             return
         }
-        
+
         imageURL = URL(string: validatedUrl)
-        
-        guard let imageURL = imageURL else {
-            return
-        }
+
+        guard let imageURL else { return }
 
         imageView.image = nil
         // stop video if it's playing before image request
         NotificationCenter.default.post(name: .stopVideo, object: nil)
-        // retrieves image if already available in cache
-        if let imageFromCache = ImageCacheKey.imageCache.object(forKey: url as AnyObject) as? UIImage {
-            self.imageView.image = imageFromCache
-            imageIsLoaded()
+
+        if let cachedResponse = URLCache.shared.cachedResponse(for: .init(url: imageURL)) {
+            DispatchQueue.main.async { [weak self] in
+                self?.imageView.image =  UIImage(data: cachedResponse.data)
+                imageIsLoaded()
+            }
             return
         }
-        
+
         addIndicator()
-        
-        let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
-        session.dataTask(with: imageURL, completionHandler: { [weak self] (data, response, error) in
-            guard let self = self else { return }
+
+        URLSession.shared.dataTask(
+            with: imageURL,
+            completionHandler: { [weak self] (data, response, error) in
+            guard let self else { return }
             if error != nil {
                 print(error as Any)
                 return
             }
 
-            DispatchQueue.main.async(execute: {
-                if let unwrappedData = data, let imageToCache = UIImage(data: unwrappedData) {
+            guard let data,
+                  let response,
+                  let image = UIImage(data: data)
+            else { return }
 
-                    if self.imageURL == URL(string: validatedUrl) {
-                        self.imageView.image = imageToCache
-                        imageIsLoaded()
-                    }
-                    ImageCacheKey.imageCache.setObject(imageToCache, forKey: url as AnyObject)
-                }
+            URLCache.shared.storeCachedResponse(
+                .init(response: response, data: data),
+                for: .init( url: imageURL)
+            )
+
+            DispatchQueue.main.async {
+                self.imageView.image = image
+                imageIsLoaded()
                 self.activityIndicator.stopAnimating()
-            })
+            }
         }).resume()
     }
-    
+
 }
 // MARK: - Private Funcs
 private extension ImageLoader {
@@ -112,13 +117,5 @@ extension ImageLoader {
         activityIndicator.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
         activityIndicator.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         activityIndicator.startAnimating()
-    }
-}
-
-// MARK: - URLSessionDelegate
-extension ImageLoader: URLSessionDelegate {
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        let urlCredential = URLCredential(trust: challenge.protectionSpace.serverTrust!)
-        completionHandler(.useCredential, urlCredential)
     }
 }

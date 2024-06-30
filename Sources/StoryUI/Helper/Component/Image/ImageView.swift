@@ -20,5 +20,4 @@ struct ImageView: UIViewRepresentable {
     func updateUIView(_ uiView: ImageLoader, context: Context) {
         uiView.loadImageWithUrl(imageURL, imageIsLoaded: imageIsLoaded)
     }
-    
 }

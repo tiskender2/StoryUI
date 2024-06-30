@@ -9,16 +9,17 @@ import SwiftUI
 
 struct UserView: View {
     
-    var model: StoryUIModel
+    var image: String
+    var name: String
     var date: String
     
     @Binding var isPresented: Bool
     
     var body: some View {
         HStack(spacing: Constant.UserView.hStackSpace) {            
-            CacheAsyncImage(urlString: model.user.image)
+            CacheAsyncImage(urlString: image)
             VStack(alignment: .leading) {
-                Text(model.user.name)
+                Text(name)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 Text(date)
@@ -27,15 +28,15 @@ struct UserView: View {
             }
             
             Spacer()
-            
-            Button(action: {
-                NotificationCenter.default.post(name: .replaceCurrentItem, object: nil)
-                isPresented = false
-            }, label: {
-                Image(systemName: Constant.UserView.closeImage)
-                    .font(.title)
-                    .foregroundColor(.white)
-            })
+
+            Image(systemName: "xmark")
+                .font(.title)
+                .foregroundColor(.white)
+                .onTapGesture {
+                    NotificationCenter.default.post(name: .replaceCurrentItem, object: nil)
+                    isPresented = false
+                }
+
         }
         .padding(.horizontal)
     }

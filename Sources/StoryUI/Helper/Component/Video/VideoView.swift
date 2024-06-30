@@ -17,8 +17,18 @@ struct VideoView: UIViewRepresentable {
     let mediaState: ((MediaState, Double) -> Void)?
     
     func makeUIView(context: Context) -> PlayerView {
-        let playerView = PlayerView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
-        playerView.player = player
+        let playerView = PlayerView(
+            frame: .init(
+                x: 0, 
+                y: 0,
+                width: UIScreen.main.bounds.width,
+                height: UIScreen.main.bounds.height
+            )
+        )
+
+        if playerView.player == nil {
+            playerView.player = player
+        }
         playerView.state = state
         playerView.mediaState = { state, duration in
             mediaState?(state, duration)
