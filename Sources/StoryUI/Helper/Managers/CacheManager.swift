@@ -5,7 +5,7 @@
 //  Created by Tolga İskender on 30.04.2022.
 //
 
-import Foundation
+import AVFoundation
 
 public enum Result<T> {
     case success(T)
@@ -14,58 +14,127 @@ public enum Result<T> {
 
 final class CacheManager: NSObject {
 
-    static let shared = CacheManager()
-    
     private let fileManager = FileManager.default
-    private lazy var mainDirectoryUrl: URL = {
 
-        let documentsUrl = self.fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        return documentsUrl
-    }()
+    func loadVideo(from url: URL, completion: @escaping (Result<URL>) -> Void) {
+        switch createCacheDirectory() {
+        case .success(let cacheDirectory):
+            let videoFileName = url.lastPathComponent
+            let destinationUrl = cacheDirectory.appendingPathComponent(videoFileName)
 
-    
-    func getFileWith(stringUrl: String, completionHandler: @escaping (Result<URL>) -> Void ) {
-        let file = directoryFor(stringUrl: stringUrl)
-        //return file path if already exists in cache directory
-        guard !fileManager.fileExists(atPath: file.path)  else {
-            completionHandler(.success(file))
-            return
+            if fileManager.fileExists(atPath: destinationUrl.path) {
+                DispatchQueue.main.async {
+                    completion(.success(destinationUrl))
+                }
+            } else {
+                downloadAndCacheVideo(from: url, completion: completion)
+            }
+        case .failure(let error):
+            completion(.failure(error))
+        }
+    }
+}
+
+
+private extension CacheManager {
+
+    func createCacheDirectory() -> Result<URL> {
+        guard let cacheDirectory = fileManager.urls(
+            for: .cachesDirectory,
+            in: .userDomainMask
+        ).first
+        else {
+            return .failure("Unable to get cache directory")
         }
 
-        guard let url = URL(string: stringUrl) else {
-            completionHandler(.failure("url error"))
-            return
+        let videoCacheDirectory = cacheDirectory.appendingPathComponent(
+            "VideoCache",
+            isDirectory: true
+        )
+
+        if !fileManager.fileExists(atPath: videoCacheDirectory.path) {
+            do {
+                try fileManager.createDirectory(
+                    at: videoCacheDirectory,
+                    withIntermediateDirectories: true,
+                    attributes: nil
+                )
+            } catch {
+                return .failure("Error creating video cache directory: \(error.localizedDescription)")
+            }
         }
-        
-        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
-        session.dataTask(with: url, completionHandler: { (data, response, error) in
 
-            if error != nil {
-                print(error as Any)
-                return
-            }
-            guard let data = data as? NSData else {
-                completionHandler(.failure("cache error"))
-                return
-            }
-            data.write(to: file, atomically: true)
-            DispatchQueue.main.async {
-                completionHandler(.success(file))
-            }
-
-        }).resume()
+        return .success(videoCacheDirectory)
     }
 
-    private func directoryFor(stringUrl: String) -> URL {
-        let fileURL = URL(string: stringUrl)!.lastPathComponent
-        let file = self.mainDirectoryUrl.appendingPathComponent(fileURL)
-        return file
+    func downloadAndCacheVideo(from url: URL, completion: @escaping (Result<URL>) -> Void) {
+        let backgroundQueue = DispatchQueue.global(qos: .background)
+
+        backgroundQueue.async { [weak self] in
+            let session = URLSession(
+                configuration: .default,
+                delegate: self,
+                delegateQueue: nil
+            )
+            let task = session.downloadTask(with: url) { [weak self] (tempLocalUrl, response, error) in
+                guard let self else { return }
+
+                if let error = error {
+                    completion(.failure("Error downloading video: \(error.localizedDescription)"))
+                    return
+                }
+
+                guard let tempLocalUrl = tempLocalUrl,
+                      let response = response as? HTTPURLResponse,
+                      response.statusCode == 200
+                else {
+                    completion(.failure("Error: Invalid response or no data"))
+                    return
+                }
+
+                switch self.createCacheDirectory() {
+                case .success(let cacheDirectory):
+                    let videoFileName = url.lastPathComponent
+                    let destinationUrl = cacheDirectory.appendingPathComponent(videoFileName)
+
+                    do {
+                        if FileManager.default.fileExists(
+                            atPath: destinationUrl.path
+                        ) {
+                            try FileManager.default.removeItem(at: destinationUrl)
+                        }
+
+                        try FileManager.default.moveItem(
+                            at: tempLocalUrl,
+                            to: destinationUrl
+                        )
+
+                        DispatchQueue.main.async {
+                            completion(.success(destinationUrl))
+                        }
+
+                    } catch {
+                        completion(.failure("Error moving video file to cache: \(error.localizedDescription)"))
+                    }
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+            task.resume()
+        }
     }
 }
 
 
 extension CacheManager: URLSessionDelegate {
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    func urlSession(
+        _ session: URLSession,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (
+            URLSession.AuthChallengeDisposition,
+            URLCredential?
+        ) -> Void
+    ) {
         let urlCredential = URLCredential(trust: challenge.protectionSpace.serverTrust!)
         completionHandler(.useCredential, urlCredential)
     }

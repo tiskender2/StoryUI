@@ -26,7 +26,12 @@ public struct StoryView: View {
     ///   - stories: all stories to show
     ///   - selectedIndex: current story index selected by user
     ///   - isPresented: to hide and show for closing storyView
-    public init(stories: [StoryUIModel], selectedIndex: Int = 0, isPresented: Binding<Bool>, userClosure: UserCompletionHandler?) {
+    public init(
+        stories: [StoryUIModel],
+        selectedIndex: Int = 0,
+        isPresented: Binding<Bool>,
+        userClosure: UserCompletionHandler? = nil
+    ) {
         self.stories = stories
         self.selectedIndex = selectedIndex
         self._isPresented = isPresented
@@ -39,10 +44,12 @@ public struct StoryView: View {
                 Color.black.ignoresSafeArea()
                 TabView(selection: $storyData.currentStoryUser) {
                     ForEach(storyData.stories) { model in
-                        StoryDetailView(model: model,
-                                        isPresented: $isPresented,
-                                        userClosure: userClosure)
-                        .environmentObject(storyData)
+                        StoryDetailView(
+                            storyData: storyData,
+                            model: model,
+                            isPresented: $isPresented,
+                            userClosure: userClosure
+                        )
                     }
                 }
             }
@@ -66,6 +73,7 @@ public struct StoryView: View {
     
     private func stopVideo() {
         NotificationCenter.default.post(name: .stopVideo, object: nil)
+        NotificationCenter.default.removeObserver(self)
     }
 }
 

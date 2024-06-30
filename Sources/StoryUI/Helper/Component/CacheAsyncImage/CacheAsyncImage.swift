@@ -30,83 +30,34 @@ struct CacheAsyncImage: View {
 }
 
 
-class UrlImageModel: ObservableObject {
+final class UrlImageModel: ObservableObject {
     @Published var image: UIImage?
     var urlString: String?
-    var imageCache = CacheAsyncImageCache.getImageCache()
-    
+
     init(urlString: String?) {
         self.urlString = urlString
-        loadImage()
+        downloadPhoto()
     }
-    
-    func loadImage() {
-        if loadImageFromCache() {
-            return
-        }
-        loadImageFromUrl()
-    }
-    
-    func loadImageFromCache() -> Bool {
-        guard let urlString = urlString else {
-            return false
-        }
-        
-        guard let cacheImage = imageCache.get(forKey: urlString) else {
-            return false
-        }
-        
-        image = cacheImage
-        return true
-    }
-    
-    func loadImageFromUrl() {
-        guard let urlString = urlString else {
-            return
-        }
-        
-        let url = URL(string: urlString)!
-        let task = URLSession.shared.dataTask(with: url, completionHandler: getImageFromResponse(data:response:error:))
-        task.resume()
-    }
-    
-    
-    func getImageFromResponse(data: Data?, response: URLResponse?, error: Error?) {
-        guard error == nil else {
-            print("Error: \(error!)")
-            return
-        }
-        guard let data = data else {
-            print("No data found")
-            return
-        }
-        
-        DispatchQueue.main.async {
-            guard let loadedImage = UIImage(data: data) else {
-                return
+
+    private func downloadPhoto() {
+        guard let urlString, let url = URL(string: urlString) else { return }
+
+        if let cachedResponse = URLCache.shared.cachedResponse(for: .init(url: url)) {
+            self.image = .init(data: cachedResponse.data)
+        } else {
+            let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+                guard let data, let response else { return }
+
+                URLCache.shared.storeCachedResponse(
+                    .init(response: response, data: data),
+                    for: .init(url: url)
+                )
+
+                DispatchQueue.main.async {
+                    self?.image = UIImage(data: data)
+                }
             }
-            
-            self.imageCache.set(forKey: self.urlString!, image: loadedImage)
-            self.image = loadedImage
+            task.resume()
         }
-    }
-}
-
-class CacheAsyncImageCache {
-    var cache = NSCache<NSString, UIImage>()
-    
-    func get(forKey: String) -> UIImage? {
-        return cache.object(forKey: NSString(string: forKey))
-    }
-    
-    func set(forKey: String, image: UIImage) {
-        cache.setObject(image, forKey: NSString(string: forKey))
-    }
-}
-
-extension CacheAsyncImageCache {
-    private static var imageCache = CacheAsyncImageCache()
-    static func getImageCache() -> CacheAsyncImageCache {
-        return imageCache
     }
 }

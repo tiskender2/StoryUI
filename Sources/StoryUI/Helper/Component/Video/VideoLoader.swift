@@ -9,23 +9,23 @@ import Foundation
 import UIKit
 import AVKit
 
-class PlayerView: UIView {
+final class PlayerView: UIView {
     
     // MARK: Public Properties
-    var player: AVPlayer?
+    weak var player: AVPlayer?
     var duration: Double = 0.0
     var state: MediaState = .notStarted
-    var mediaState: ((MediaState,Double) -> ())?
+    var mediaState: ((MediaState, Double) -> ())?
     
     let contentView = UIView()
     
     // MARK: Private Properties
     private let playerLayer = AVPlayerLayer()
-    private var previewTimer: Timer?
     private var url: URL?
-    
+    private let cacheManager: CacheManager
      // MARK: - Initializers
     override init(frame: CGRect) {
+        self.cacheManager = CacheManager()
         super.init(frame: frame)
         self.layer.cornerRadius = 12
         self.clipsToBounds = true
@@ -34,34 +34,36 @@ class PlayerView: UIView {
     
     deinit {
         NotificationCenter.default.removeObserver(self)
+        player?.removeObserver(self, forKeyPath: "timeControlStatus")
+        player = nil
     }
     
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
+    required init?(coder: NSCoder) { nil }
 
-    
     func startVideo(url: URL?) {
         guard let validatedUrl = url else { return }
         if self.url == url { return }
         self.url = validatedUrl
         addActivityIndicatory()
-        addObserverToVideo()
         // stop video if it's playing before video request
         stopVideo()
         guard let url = url else { return }
-        CacheManager.shared.getFileWith(stringUrl: url.absoluteString) { [weak self] result in
-            guard let self = self else { return }
+        cacheManager.loadVideo(from: url) { [weak self] result in
             switch result {
             case .success(let url):
-                self.setupPlayer(url)
+                self?.setupPlayer(url)
             case .failure(let error):
                 print(error)
             }
         }
     }
   
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+    override func observeValue(
+        forKeyPath keyPath: String?,
+        of object: Any?,
+        change: [NSKeyValueChangeKey : Any]?,
+        context: UnsafeMutableRawPointer?
+    ) {
         if keyPath == "timeControlStatus" {
             if player?.timeControlStatus == .playing {
                 removeActivityIndicatory()
@@ -96,12 +98,10 @@ class PlayerView: UIView {
             state = .restart
         }
     }
-    
 
-    
     private func setupPlayer(_ url: URL) {
-        self.player?.replaceCurrentItem(with: nil)
-        self.player?.replaceCurrentItem(with: AVPlayerItem(url: url))
+        //self.player?.replaceCurrentItem(with: nil)
+        self.player?.replaceCurrentItem(with: .init(url: url))
         self.player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
         self.player?.automaticallyWaitsToMinimizeStalling = false
         self.getVideoLength(videoURL: url)
@@ -112,14 +112,34 @@ class PlayerView: UIView {
         self.contentView.layer.addSublayer(self.playerLayer)
         state = .ready
         mediaState?(.ready, duration)
-      
+        addObserverToVideo()
     }
     
     private func addObserverToVideo() {
-        NotificationCenter.default.addObserver(self, selector: #selector(restartVideoObserver), name: .restartVideo, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(stopVideoObserver), name: .stopVideo, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(stopAndRestartVideoObserver), name: .stopAndRestartVideo, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(replaceCurrentItemObserver), name: .replaceCurrentItem, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(restartVideoObserver),
+            name: .restartVideo,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(stopVideoObserver),
+            name: .stopVideo, 
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(stopAndRestartVideoObserver),
+            name: .stopAndRestartVideo,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, 
+            selector: #selector(replaceCurrentItemObserver),
+            name: .replaceCurrentItem,
+            object: nil
+        )
     }
 }
 
@@ -184,6 +204,9 @@ extension PlayerView {
     
     @objc private func replaceCurrentItemObserver() {
         self.player?.replaceCurrentItem(with: nil)
+        self.player = nil
+        NotificationCenter.default.removeObserver(self)
+        player?.removeObserver(self, forKeyPath: "timeControlStatus")
     }
     
 }
