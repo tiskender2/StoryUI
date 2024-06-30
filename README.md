@@ -11,7 +11,7 @@ Use **Swift Package Manager**
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/tiskender2/StoryUI.git", exact: "1.5.3")
+    .package(url: "https://github.com/tiskender2/StoryUI.git", exact: "1.5.5")
 ]
 ```
 ## Example 
