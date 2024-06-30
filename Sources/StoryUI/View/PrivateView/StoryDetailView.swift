@@ -10,8 +10,8 @@ import AVKit
 
 struct StoryDetailView: View {
     // MARK: Public Properties
-    @EnvironmentObject var storyData: StoryViewModel
-    
+    @ObservedObject var storyData: StoryViewModel
+
     @State var model: StoryUIModel
     @Binding var isPresented: Bool
     
@@ -32,7 +32,7 @@ struct StoryDetailView: View {
     @State private var isAnimationStarted: Bool = false
     @State private var isTapDisabled: Bool = false
     @State private var showEmoji: Bool = true
-    
+
     private var messageViewPosition: CGFloat {
         return -keyboardManager.currentHeight
     }
@@ -52,7 +52,10 @@ struct StoryDetailView: View {
                         getStoryView(with: index, story: story)
                             .overlay(
                                 tapStory()
-                                    .offset(y: story.config.storyType != .plain() ? -Constant.MessageView.height : .zero)
+                                    .offset(
+                                        y: story.config.storyType != .plain()
+                                        ? -Constant.MessageView.height : .zero
+                                    )
                             )
                         messageView(with: index)
                     }
@@ -64,20 +67,22 @@ struct StoryDetailView: View {
                 getUserInfoAndProgressBar(with: index)
                 ,alignment: .top
             )
-            .rotation3DEffect(getAngle(proxy: proxy),
-                              axis: (x: 0, y: 1, z: 0),
-                              anchor: proxy.frame(in: .global).minX > 0 ? .leading : .trailing,
-                              perspective: 2.5)
+            .rotation3DEffect(
+                getAngle(proxy: proxy),
+                axis: (x: 0, y: 1, z: 0),
+                anchor: proxy.frame(in: .global).minX > 0 ? .leading : .trailing,
+                perspective: 2.5
+            )
         }
-        .onChange(of: storyData.currentStoryUser, perform: { newValue in
+        .onChange(of: storyData.currentStoryUser) { newValue in
             NotificationCenter.default.post(name: .stopVideo, object: nil)
             resetProgress()
             playVideo()
-        })
+        }
         .onReceive(timer) { _ in
             startProgress()
         }
-        .onChange(of: isAnimationStarted ? isAnimationStarted : keyboardManager.isKeyboardOpen) { state in
+        .onChange(of: isAnimationStarted ? isAnimationStarted : false) { state in
             configureProgress(with: state)
             isTimerRunning = state
         }
@@ -94,18 +99,22 @@ private extension StoryDetailView {
             ImageView(imageURL: story.mediaURL) {
                 start(index: index)
             }
-            .onAppear() {
+            .onAppear {
                 resetAVPlayer()
             }
         case .video:
-            VideoView(videoURL: story.mediaURL, state: $state, player: player) { media, duration in
+            VideoView(
+                videoURL: story.mediaURL,
+                state: $state,
+                player: player
+            ) { media, duration in
                 model.stories[index].duration = duration
                 start(index: index)
                 state = media
             }
-            .onChange(of: state, perform: { _ in
+            .onChange(of: state) { _ in
                 playVideo()
-            })
+            }
         }
     }
     
@@ -117,20 +126,24 @@ private extension StoryDetailView {
             if let emojis, showEmoji {
                 VStack {
                     Spacer()
-                    EmojiView(story: getStory(with: index),
-                              emojiArray: emojis,
-                              startAnimating: $startAnimate,
-                              selectedEmoji: $selectedEmoji,
-                              userClosure: userClosure)
+                    EmojiView(
+                        story: getStory(with: index),
+                        emojiArray: emojis,
+                        startAnimating: $startAnimate,
+                        selectedEmoji: $selectedEmoji,
+                        userClosure: userClosure
+                    )
                     .animation(messageViewPosition == 0 ? .none : .easeOut)
                     .offset(y: emojiViewPosition)
                     .opacity(messageViewPosition == 0 ? 0 : 1)
                 }
                 
                 if startAnimate {
-                    EmojiReactionView(dissmis: $startAnimate,
-                                      isAnimationStarted: $isAnimationStarted,
-                                      emoji: selectedEmoji)
+                    EmojiReactionView(
+                        dissmis: $startAnimate,
+                        isAnimationStarted: $isAnimationStarted,
+                        emoji: selectedEmoji
+                    )
                 }
                 
             }
@@ -142,18 +155,25 @@ private extension StoryDetailView {
     @ViewBuilder
     func getUserInfoAndProgressBar(with index: Int) -> some View {
         let date = getStory(with: index).date
+        let name = model.user.name
+        let image = model.user.image
         VStack {
             HStack(spacing: Constant.progressBarSpacing) {
                 ForEach(model.stories.indices) { index in
-                    ProgressBarView(timerProgress: timerProgress,
-                                    index: index)
+                    ProgressBarView(
+                        timerProgress: timerProgress,
+                        index: index
+                    )
                 }
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
-            UserView(model: model,
-                     date: date,
-                     isPresented: $isPresented)
+            UserView(
+                image: image,
+                name: name,
+                date: date,
+                isPresented: $isPresented
+            )
         }
     }
     
@@ -161,9 +181,11 @@ private extension StoryDetailView {
     func messageView(with index: Int) -> some View {
         let story = getStory(with: index)
         
-        MessageView(story: story,
-                    showEmoji: $showEmoji,
-                    userClosure: userClosure)
+        MessageView(
+            story: story,
+            showEmoji: $showEmoji,
+            userClosure: userClosure
+        )
         .padding()
         .animation(messageViewPosition == 0 ? .none : .easeOut)
         .offset(y: messageViewPosition)
@@ -302,6 +324,7 @@ private extension StoryDetailView {
     
     func dissmis() {
         isPresented = false
+        NotificationCenter.default.post(name: .replaceCurrentItem, object: nil)
     }
     
     func getCurrentIndex() -> Int {
