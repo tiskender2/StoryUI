@@ -64,8 +64,10 @@ var body: some View {
                 Text("Show")
             }
             .fullScreenCover(isPresented: $isPresented) {
-                StoryView(stories: stories,
-                          isPresented: $isPresented)
+                StoryView(
+                    stories: stories, 
+                    isPresented: $isPresented
+                )
             }
         }
 
