@@ -10,7 +10,7 @@ import AVKit
 
 struct StoryDetailView: View {
     // MARK: Public Properties
-    @ObservedObject var storyData: StoryViewModel
+    @ObservedObject var viewModel: StoryViewModel
 
     @State var model: StoryUIModel
     @Binding var isPresented: Bool
@@ -74,7 +74,7 @@ struct StoryDetailView: View {
                 perspective: 2.5
             )
         }
-        .onChange(of: storyData.currentStoryUser) { newValue in
+        .onChange(of: viewModel.currentStoryUser) { newValue in
             NotificationCenter.default.post(name: .stopVideo, object: nil)
             resetProgress()
             playVideo()
@@ -220,14 +220,14 @@ private extension StoryDetailView {
     
     func getPreviousStory() {
         
-        if let first = storyData.stories.first, first.id != model.id {
-            
-            let bundleIndex = storyData.stories.firstIndex { currentBundle in
+        if let first = viewModel.stories.first, first.id != model.id {
+
+            let bundleIndex = viewModel.stories.firstIndex { currentBundle in
                 return model.id == currentBundle.id
             } ?? 0
             
             withAnimation {
-                storyData.currentStoryUser = storyData.stories[bundleIndex - 1].id
+                viewModel.currentStoryUser = viewModel.stories[bundleIndex - 1].id
             }
         } else {
             let index = getCurrentIndex()
@@ -245,17 +245,17 @@ private extension StoryDetailView {
         let story = getStory(with: index)
         
         if let last = model.stories.last, last.id == story.id {
-            if let lastBundle = storyData.stories.last, lastBundle.id == model.id {
+            if let lastBundle = viewModel.stories.last, lastBundle.id == model.id {
                 withAnimation {
                     dissmis()
                 }
             } else {
-                let bundleIndex = storyData.stories.firstIndex { currentBundle in
+                let bundleIndex = viewModel.stories.firstIndex { currentBundle in
                     return model.id == currentBundle.id
                 } ?? 0
                 
                 withAnimation {
-                    storyData.currentStoryUser = storyData.stories[bundleIndex + 1].id
+                    viewModel.currentStoryUser = viewModel.stories[bundleIndex + 1].id
                 }
             }
         }
@@ -267,7 +267,7 @@ private extension StoryDetailView {
         let index = getCurrentIndex()
         let story = getStory(with: index)
         
-        if storyData.currentStoryUser == model.id {
+        if viewModel.currentStoryUser == model.id {
             if !model.isSeen {
                 model.isSeen = true
             }
@@ -318,7 +318,7 @@ private extension StoryDetailView {
     }
     
     func getProgressBarFrame(duration: Double) {
-        let calculatedDuration = storyData.getVideoProgressBarFrame(duration: duration)
+        let calculatedDuration = viewModel.getVideoProgressBarFrame(duration: duration)
         timerProgress += (0.01 / calculatedDuration)
     }
     
@@ -348,7 +348,7 @@ private extension StoryDetailView {
     
     func playVideo() {
         let index = getCurrentIndex()
-        let currentUser = storyData.currentStoryUser == model.id
+        let currentUser = viewModel.currentStoryUser == model.id
         let video = model.stories[index].config.mediaType == .video
         let isReady = state == .ready || state == .started
         
@@ -378,7 +378,7 @@ private extension StoryDetailView {
         if state, mediaType == .video {
             pauseVideo()
         } else if !state, mediaType == .video {
-            guard storyData.currentStoryUser == model.id else { return }
+            guard viewModel.currentStoryUser == model.id else { return }
             playVideo()
         }
     }

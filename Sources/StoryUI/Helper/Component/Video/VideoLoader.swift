@@ -100,7 +100,7 @@ final class PlayerView: UIView {
     }
 
     private func setupPlayer(_ url: URL) {
-        //self.player?.replaceCurrentItem(with: nil)
+        self.player?.replaceCurrentItem(with: nil)
         self.player?.replaceCurrentItem(with: .init(url: url))
         self.player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
         self.player?.automaticallyWaitsToMinimizeStalling = false
@@ -203,10 +203,8 @@ extension PlayerView {
     }
     
     @objc private func replaceCurrentItemObserver() {
+        NotificationCenter.default.removeObserver(self)
         self.player?.replaceCurrentItem(with: nil)
         self.player = nil
-        NotificationCenter.default.removeObserver(self)
-        player?.removeObserver(self, forKeyPath: "timeControlStatus")
     }
-    
 }

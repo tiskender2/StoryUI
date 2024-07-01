@@ -10,7 +10,7 @@ import AVFoundation
 
 public struct StoryView: View {
     
-    @StateObject private var storyData = StoryViewModel()
+    @StateObject private var viewModel = StoryViewModel()
     @Binding private var isPresented: Bool
     
     // Private properties
@@ -42,10 +42,10 @@ public struct StoryView: View {
         if isPresented {
             ZStack {
                 Color.black.ignoresSafeArea()
-                TabView(selection: $storyData.currentStoryUser) {
-                    ForEach(storyData.stories) { model in
+                TabView(selection: $viewModel.currentStoryUser) {
+                    ForEach(viewModel.stories) { model in
                         StoryDetailView(
-                            storyData: storyData,
+                            viewModel: viewModel,
                             model: model,
                             isPresented: $isPresented,
                             userClosure: userClosure
@@ -66,9 +66,9 @@ public struct StoryView: View {
     }
     
     private func startStory() {
-        storyData.stories = stories
-        storyData.stories[selectedIndex].isSeen = true
-        storyData.currentStoryUser = stories[selectedIndex].id
+        viewModel.stories = stories
+        viewModel.stories[selectedIndex].isSeen = true
+        viewModel.currentStoryUser = stories[selectedIndex].id
     }
     
     private func stopVideo() {
