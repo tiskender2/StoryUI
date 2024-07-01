@@ -205,6 +205,7 @@ extension PlayerView {
     @objc private func replaceCurrentItemObserver() {
         NotificationCenter.default.removeObserver(self)
         self.player?.replaceCurrentItem(with: nil)
+        self.player?.removeObserver(self, forKeyPath: "timeControlStatus")
         self.player = nil
     }
 }
