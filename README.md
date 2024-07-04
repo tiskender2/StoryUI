@@ -70,8 +70,8 @@ var body: some View {
                 )
             }
         }
-
     }
+}
 ```
 ## Requirements
 - iOS 14+
