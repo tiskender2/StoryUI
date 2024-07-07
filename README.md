@@ -56,7 +56,7 @@ struct ContentView: View {
             ]
         )
     ]
-var body: some View {
+    var body: some View {
         NavigationView {
             Button {
                 isPresented = true
@@ -65,13 +65,14 @@ var body: some View {
             }
             .fullScreenCover(isPresented: $isPresented) {
                 StoryView(
-                    stories: stories, 
+                    stories: stories,
                     isPresented: $isPresented
                 )
             }
         }
 
     }
+}
 ```
 ## Requirements
 - iOS 14+
