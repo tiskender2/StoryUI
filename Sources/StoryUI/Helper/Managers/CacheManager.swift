@@ -5,7 +5,7 @@
 //  Created by Tolga İskender on 30.04.2022.
 //
 
-import AVFoundation
+@preconcurrency import AVFoundation
 
 public enum Result<T> {
     case success(T)
@@ -35,6 +35,7 @@ final class CacheManager: NSObject {
     }
 }
 
+extension FileManager: @unchecked @retroactive Sendable {}
 
 private extension CacheManager {
 
