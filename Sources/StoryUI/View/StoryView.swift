@@ -66,15 +66,22 @@ public struct StoryView: View {
     }
     
     private func startStory() {
+        guard !stories.isEmpty else { return }
+
         viewModel.stories = stories
-        viewModel.stories[selectedIndex].isSeen = true
-        viewModel.currentStoryUser = stories[selectedIndex].id
+
+        let index = stories.indices.contains(selectedIndex) ? selectedIndex : .zero
+        let storyUser = stories[index]
+
+        viewModel.currentStoryUser = storyUser.id
+
+        if !storyUser.stories.isEmpty {
+            viewModel.stories[index].isSeen = true
+        }
     }
-    
+
     private func stopVideo() {
         NotificationCenter.default.post(name: .stopVideo, object: nil)
         NotificationCenter.default.removeObserver(self)
     }
 }
-
-

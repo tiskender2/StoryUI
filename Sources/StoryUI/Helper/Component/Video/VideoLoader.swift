@@ -10,20 +10,23 @@ import UIKit
 import AVKit
 
 final class PlayerView: UIView {
-    
+
     // MARK: Public Properties
     weak var player: AVPlayer?
     var duration: Double = 0.0
     var state: MediaState = .notStarted
     var mediaState: ((MediaState, Double) -> ())?
-    
+
     let contentView = UIView()
-    
+
     // MARK: Private Properties
     private let playerLayer = AVPlayerLayer()
     private var url: URL?
     private let cacheManager: CacheManager
-     // MARK: - Initializers
+
+    private var observation: NSKeyValueObservation?
+
+    // MARK: - Initializers
     override init(frame: CGRect) {
         self.cacheManager = CacheManager()
         super.init(frame: frame)
@@ -31,13 +34,12 @@ final class PlayerView: UIView {
         self.clipsToBounds = true
         setupPlayer()
     }
-    
+
     deinit {
-        NotificationCenter.default.removeObserver(self)
-        player?.removeObserver(self, forKeyPath: "timeControlStatus")
+        observation = nil
         player = nil
     }
-    
+
     required init?(coder: NSCoder) { nil }
 
     func startVideo(url: URL?) {
@@ -57,52 +59,27 @@ final class PlayerView: UIView {
             }
         }
     }
-  
-    override func observeValue(
-        forKeyPath keyPath: String?,
-        of object: Any?,
-        change: [NSKeyValueChangeKey : Any]?,
-        context: UnsafeMutableRawPointer?
-    ) {
-        if keyPath == "timeControlStatus" {
-            if player?.timeControlStatus == .playing {
-                removeActivityIndicatory()
-                state = .started
-                mediaState?(state, duration)
-            } else if player?.timeControlStatus == .waitingToPlayAtSpecifiedRate {
-                addActivityIndicatory()
-            }
-        }
-    }
-    
-    private func getVideoLength(videoURL: URL) {
-        duration = AVURLAsset(url: videoURL).duration.seconds
-    }
-    
-    private func stopAndRestartVideo() {
-        player?.seek(to: .zero)
-    }
-    
-    private func stopVideo() {
-        if player?.timeControlStatus == .playing {
-            player?.pause()
-            player?.seek(to: .zero)
-            state = .stopped
-        }
-    }
-    
-    func restartVideo() {
-        if player?.timeControlStatus == .paused {
-            player?.seek(to: .zero)
-            player?.play()
-            state = .restart
-        }
-    }
 
-    private func setupPlayer(_ url: URL) {
+}
+
+//MARK: - Configure
+
+private extension PlayerView {
+    func setupPlayer(_ url: URL) {
         self.player?.replaceCurrentItem(with: nil)
         self.player?.replaceCurrentItem(with: .init(url: url))
-        self.player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
+
+        observation = player?.observe(\.timeControlStatus, options: .new) { [weak self] player, change in
+            guard let self else { return }
+            if player.timeControlStatus == .playing {
+                self.removeActivityIndicatory()
+                self.state = .started
+                self.mediaState?(self.state, self.duration)
+            } else if player.timeControlStatus == .waitingToPlayAtSpecifiedRate {
+                self.addActivityIndicatory()
+            }
+        }
+
         self.player?.automaticallyWaitsToMinimizeStalling = false
         self.getVideoLength(videoURL: url)
         self.playerLayer.player = self.player
@@ -114,8 +91,32 @@ final class PlayerView: UIView {
         mediaState?(.ready, duration)
         addObserverToVideo()
     }
-    
-    private func addObserverToVideo() {
+
+    func getVideoLength(videoURL: URL) {
+        duration = AVURLAsset(url: videoURL).duration.seconds
+    }
+
+    func stopAndRestartVideo() {
+        player?.seek(to: .zero)
+    }
+
+    func stopVideo() {
+        if player?.timeControlStatus == .playing {
+            player?.pause()
+            player?.seek(to: .zero)
+            state = .stopped
+        }
+    }
+
+    func restartVideo() {
+        if player?.timeControlStatus == .paused {
+            player?.seek(to: .zero)
+            player?.play()
+            state = .restart
+        }
+    }
+
+    func addObserverToVideo() {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(restartVideoObserver),
@@ -125,7 +126,7 @@ final class PlayerView: UIView {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(stopVideoObserver),
-            name: .stopVideo, 
+            name: .stopVideo,
             object: nil
         )
         NotificationCenter.default.addObserver(
@@ -135,16 +136,40 @@ final class PlayerView: UIView {
             object: nil
         )
         NotificationCenter.default.addObserver(
-            self, 
+            self,
             selector: #selector(replaceCurrentItemObserver),
             name: .replaceCurrentItem,
             object: nil
         )
     }
+
+    @objc
+    func stopAndRestartVideoObserver() {
+        stopAndRestartVideo()
+    }
+
+    @objc
+    func restartVideoObserver() {
+        restartVideo()
+    }
+
+    @objc
+    func stopVideoObserver() {
+        stopVideo()
+    }
+
+    @objc
+    func replaceCurrentItemObserver() {
+        self.player?.replaceCurrentItem(with: nil)
+        self.observation = nil
+        self.player = nil
+    }
 }
 
-extension PlayerView {
-    private func addActivityIndicatory() {
+// MARK: - Setup Func
+
+private extension PlayerView {
+    func addActivityIndicatory() {
         removeActivityIndicatory()
         let w = UIScreen.main.bounds.width
         let h = UIScreen.main.bounds.height
@@ -159,53 +184,34 @@ extension PlayerView {
         addConst(view: activityView)
         activityView.startAnimating()
     }
-    
-    private func setupPlayer() {
+
+    func setupPlayer() {
         self.addSubview(contentView)
         contentView.frame.size.width = self.frame.size.width
         contentView.frame.size.height = self.frame.size.height
         self.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            contentView.leadingAnchor.constraint(equalTo: self.leadingAnchor,constant: 0),
-            contentView.rightAnchor.constraint(equalTo: self.rightAnchor,constant: 0),
-            contentView.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor,constant: 0),
-            contentView.topAnchor.constraint(equalTo: self.topAnchor,constant: 0),
+            contentView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 0),
+            contentView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: 0),
+            contentView.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor, constant: 0),
+            contentView.topAnchor.constraint(equalTo: self.topAnchor, constant: 0),
         ])
         playerLayer.frame = contentView.frame
     }
-    
-    private func removeActivityIndicatory() {
-       self.subviews.forEach { (view) in
+
+    func removeActivityIndicatory() {
+        self.subviews.forEach { (view) in
             if view.tag == 999 {
                 view.removeFromSuperview()
             }
         }
     }
-    
-    private func addConst(view: UIActivityIndicatorView) {
+
+    func addConst(view: UIActivityIndicatorView) {
         view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             view.centerXAnchor.constraint(equalTo: view.superview!.centerXAnchor),
             view.centerYAnchor.constraint(equalTo: view.superview!.centerYAnchor)
         ])
-    }
-    
-    @objc private func stopAndRestartVideoObserver() {
-        stopAndRestartVideo()
-    }
-    
-    @objc private func restartVideoObserver() {
-        restartVideo()
-    }
-    
-    @objc private func stopVideoObserver() {
-        stopVideo()
-    }
-    
-    @objc private func replaceCurrentItemObserver() {
-        NotificationCenter.default.removeObserver(self)
-        self.player?.replaceCurrentItem(with: nil)
-        self.player?.removeObserver(self, forKeyPath: "timeControlStatus")
-        self.player = nil
     }
 }
